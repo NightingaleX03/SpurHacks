@@ -1,6 +1,7 @@
 import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from .git import github_api
 
 router = APIRouter()
 
@@ -29,6 +30,14 @@ class ScanRequest(BaseModel):
 class SubscribeRequest(BaseModel):
     user_id: int
     plan: str
+
+class GitHubRepoRequest(BaseModel):
+    url: str
+
+class FileContentRequest(BaseModel):
+    owner: str
+    repo: str
+    path: str
 
 # Dummy storage for demonstration
 diagrams = {}
@@ -101,3 +110,66 @@ async def render_mermaid(req: MermaidRequest):
             return {"svg": response.text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# GitHub API endpoints
+@router.post("/github/analyze")
+def analyze_repository(req: GitHubRepoRequest):
+    """Analyze a GitHub repository and return its file tree and tech stack"""
+    try:
+        owner, repo = github_api.parse_github_url(req.url)
+        
+        # Get repository tree
+        tree_data = github_api.get_repository_tree(owner, repo)
+        if not tree_data:
+            raise HTTPException(status_code=404, detail="Repository not found or is private")
+        
+        # Build hierarchical file tree
+        file_tree = github_api.build_file_tree(tree_data)
+        
+        # Analyze tech stack
+        tech_stack = github_api.analyze_tech_stack(tree_data)
+        
+        # Get repository info
+        repo_info = github_api.get_repository_info(owner, repo)
+        
+        return {
+            "owner": owner,
+            "repo": repo,
+            "file_tree": file_tree,
+            "tech_stack": tech_stack,
+            "repo_info": repo_info,
+            "total_files": len([item for item in tree_data if item['type'] == 'blob'])
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing repository: {str(e)}")
+
+@router.get("/github/content/{owner}/{repo}")
+def get_file_content(owner: str, repo: str, path: str):
+    """Get the content of a specific file from a GitHub repository"""
+    try:
+        content = github_api.get_file_content(owner, repo, path)
+        if content is None:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        return {
+            "owner": owner,
+            "repo": repo,
+            "path": path,
+            "content": content
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching file content: {str(e)}")
+
+@router.get("/github/info/{owner}/{repo}")
+def get_repository_info(owner: str, repo: str):
+    """Get basic information about a GitHub repository"""
+    try:
+        repo_info = github_api.get_repository_info(owner, repo)
+        if not repo_info:
+            raise HTTPException(status_code=404, detail="Repository not found")
+        
+        return repo_info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching repository info: {str(e)}")
