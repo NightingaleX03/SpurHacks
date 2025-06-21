@@ -203,7 +203,7 @@ gsap.registerPlugin(ScrollTrigger);
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="pricing-card glass p-8 rounded-xl">
+            <div class="pricing-card glass p-8 rounded-xl flex flex-col">
               <div class="text-center mb-8">
                 <h3 class="text-2xl font-bold text-white mb-4">Starter</h3>
                 <div class="text-4xl font-bold text-neon-purple mb-2">$0</div>
@@ -229,12 +229,14 @@ gsap.registerPlugin(ScrollTrigger);
                   Community support
                 </li>
               </ul>
-              <button class="w-full neon-button glass py-3 text-white rounded-lg border border-neon-purple">
-                Get Started
-              </button>
+              <div class="mt-auto">
+                <button class="w-full neon-button glass py-3 text-white rounded-lg border border-neon-purple">
+                  Get Started
+                </button>
+              </div>
             </div>
 
-            <div class="pricing-card glass p-8 rounded-xl border-2 border-neon-purple relative">
+            <div class="pricing-card glass p-8 rounded-xl border-2 border-neon-purple relative flex flex-col">
               <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <span class="bg-neon-purple text-white px-4 py-1 rounded-full text-sm font-semibold">Most Popular</span>
               </div>
@@ -269,12 +271,14 @@ gsap.registerPlugin(ScrollTrigger);
                   Priority support
                 </li>
               </ul>
-              <button class="w-full neon-button glass py-3 text-white rounded-lg bg-gradient-to-r from-neon-purple to-electric-blue">
-                Start Free Trial
-              </button>
+              <div class="mt-auto">
+                <button class="w-full neon-button glass py-3 text-white rounded-lg bg-gradient-to-r from-neon-purple to-electric-blue">
+                  Start Free Trial
+                </button>
+              </div>
             </div>
 
-            <div class="pricing-card glass p-8 rounded-xl">
+            <div class="pricing-card glass p-8 rounded-xl flex flex-col">
               <div class="text-center mb-8">
                 <h3 class="text-2xl font-bold text-white mb-4">Enterprise</h3>
                 <div class="text-4xl font-bold text-neon-purple mb-2">Custom</div>
@@ -306,9 +310,11 @@ gsap.registerPlugin(ScrollTrigger);
                   SLA guarantee
                 </li>
               </ul>
-              <button class="w-full neon-button glass py-3 text-white rounded-lg border border-neon-purple">
-                Contact Sales
-              </button>
+              <div class="mt-auto">
+                <button class="w-full neon-button glass py-3 text-white rounded-lg border border-neon-purple">
+                  Contact Sales
+                </button>
+              </div>
             </div>
           </div>
         </div>

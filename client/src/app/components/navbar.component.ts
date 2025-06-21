@@ -8,14 +8,14 @@ import { AuthService } from '../services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
-    <nav class="bg-black fixed top-0 left-0 right-0 z-50 px-6 py-4">
+    <nav *ngIf="!isAuthenticated" class="bg-black fixed top-0 left-0 right-0 z-50 px-6 py-4">
       <div class="max-w-7xl mx-auto flex justify-between items-center">
         <!-- Logo -->
         <div class="flex items-center space-x-2">
           <div class="w-8 h-8 bg-gradient-to-r from-neon-purple to-electric-blue rounded-lg flex items-center justify-center">
             <span class="text-white font-bold text-lg">S</span>
           </div>
-          <span class="text-xl font-bold text-white" style="text-shadow: 0 0 8px rgba(142, 45, 226, 0.8);">StackSketch</span>
+          <span class="text-xl font-bold text-white" style="text-shadow: 0 0 2px rgba(142, 45, 226, 0.4);">StackSketch</span>
         </div>
 
         <!-- Desktop Navigation -->
@@ -27,7 +27,7 @@ import { AuthService } from '../services/auth.service';
         </div>
 
         <!-- Mobile Menu Button -->
-        <button (click)="toggleMobileMenu()" class="md:hidden text-white hover:text-highlight">
+        <button (click)="toggleMobileMenu()" class="md:hidden text-gray-300 hover:text-highlight">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
         </button>
       </div>
@@ -45,11 +45,11 @@ import { AuthService } from '../services/auth.service';
   `,
   styles: [`
     .nav-link {
-      @apply text-white hover:text-highlight transition-all duration-300 font-medium relative;
+      @apply text-gray-300 hover:text-highlight transition-all duration-300 font-medium relative;
     }
     .nav-link.active {
       @apply text-highlight;
-      text-shadow: 0 0 8px var(--highlight);
+      text-shadow: 0 0 3px var(--highlight);
     }
     .neon-button {
       @apply bg-gradient-to-r from-neon-purple to-electric-blue text-white font-semibold rounded-lg border border-neon-purple hover:border-highlight transition-all duration-300;

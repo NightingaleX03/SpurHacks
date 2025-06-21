@@ -1,7 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { ThemeService } from '../../services/theme.service';
 import { AuthService, User } from '../../services/auth.service';
 import { gsap } from 'gsap';
 
@@ -10,20 +9,20 @@ import { gsap } from 'gsap';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   template: `
-    <div class="flex min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300">
+    <div class="flex min-h-screen bg-dark-bg transition-colors duration-300">
       <!-- Sidebar -->
-      <aside class="glass-dark dark:glass w-20 md:w-64 flex flex-col items-center md:items-stretch py-8 px-2 md:px-4 space-y-8 md:space-y-0 md:space-x-0 shadow-xl relative z-20 sidebar">
+      <aside class="glass-dark w-20 md:w-64 flex flex-col items-center md:items-stretch py-8 px-2 md:px-4 space-y-8 md:space-y-0 md:space-x-0 shadow-xl relative z-20 sidebar">
         <div class="flex flex-col items-center md:items-start space-y-8 w-full">
           <!-- Logo -->
           <div class="flex items-center space-x-2 mb-8 md:mb-12">
             <div class="w-10 h-10 bg-gradient-to-r from-neon-purple to-electric-blue rounded-lg flex items-center justify-center">
               <span class="text-white font-bold text-2xl">S</span>
             </div>
-            <span class="hidden md:inline text-2xl font-bold text-white text-neon-purple" style="text-shadow: 0 0 5px #8E2DE2, 0 0 10px #8E2DE2;">StackSketch</span>
+            <span class="hidden md:inline text-2xl font-bold text-white text-neon-purple" style="text-shadow: 0 0 4px rgba(142, 45, 226, 0.5);">StackSketch</span>
           </div>
 
           <!-- Navigation -->
-          <nav class="flex flex-col space-y-2 w-full">
+          <nav class="flex flex-col space-y-2 w-full flex-grow">
             <a routerLink="overview" routerLinkActive="active" class="sidebar-link">
               <span class="sidebar-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 0v6m0 0H7m6 0h6"></path></svg></span>
               <span class="hidden md:inline ml-3">Overview</span>
@@ -48,18 +47,18 @@ import { gsap } from 'gsap';
               <span class="sidebar-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M4 12h16"/><path d="M12 4v16"/></svg></span>
               <span class="hidden md:inline ml-3">DevOps</span>
             </a>
+            
+            <div class="flex-grow"></div>
+
+            <button (click)="authService.logout()" class="sidebar-link">
+              <span class="sidebar-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg></span>
+              <span class="hidden md:inline ml-3">Logout</span>
+            </button>
           </nav>
-        </div>
-        <!-- Theme Toggle -->
-        <div class="mt-auto flex flex-col items-center md:items-start w-full pt-8">
-          <button (click)="themeService.toggleTheme()" class="theme-toggle mb-4" [class.dark]="themeService.getCurrentTheme() === 'dark'">
-            <span class="sr-only">Toggle Theme</span>
-          </button>
-          <button (click)="authService.logout()" class="text-xs text-gray-400 hover:text-highlight transition-colors">Logout</button>
         </div>
       </aside>
       <!-- Main Content -->
-      <section class="flex-1 min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300 p-4 md:p-8">
+      <section class="flex-1 min-h-screen bg-dark-bg transition-colors duration-300 p-4 md:p-8">
         <router-outlet></router-outlet>
       </section>
     </div>
@@ -70,8 +69,7 @@ import { gsap } from 'gsap';
     }
     .sidebar-link.active {
       @apply bg-gradient-to-r from-neon-purple to-electric-blue text-highlight font-bold;
-      box-shadow: 0 0 10px #8E2DE2, 0 0 20px #4A00E0;
-      text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+      box-shadow: 0 0 5px #8E2DE2, 0 0 10px #4A00E0;
     }
     .sidebar-icon {
       @apply flex items-center justify-center w-8 h-8;
@@ -86,7 +84,6 @@ import { gsap } from 'gsap';
 export class DashboardComponent implements OnInit, AfterViewInit {
   user: User | null = null;
   constructor(
-    public themeService: ThemeService,
     public authService: AuthService,
     private router: Router
   ) {}

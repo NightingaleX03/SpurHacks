@@ -11,7 +11,7 @@ import { NavbarComponent } from './components/navbar.component';
   template: `
     <div class="min-h-screen bg-dark-bg">
       <app-navbar></app-navbar>
-      <main class="pt-20">
+      <main [ngClass]="isAuthenticated ? '' : 'pt-20'">
         <router-outlet></router-outlet>
       </main>
     </div>
