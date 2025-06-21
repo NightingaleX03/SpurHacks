@@ -25,7 +25,7 @@ import { gsap } from 'gsap';
           <div class="w-16 h-16 bg-gradient-to-r from-neon-purple to-electric-blue rounded-xl flex items-center justify-center mx-auto mb-4">
             <span class="text-white font-bold text-2xl">S</span>
           </div>
-          <h1 class="text-3xl font-bold text-white neon-glow text-neon-purple mb-2">Welcome Back</h1>
+          <h1 class="text-3xl font-bold text-white text-neon-purple mb-2" style="text-shadow: 0 0 8px rgba(142, 45, 226, 0.6);">Welcome Back</h1>
           <p class="text-gray-400">Sign in to your StackSketch account</p>
         </div>
 
@@ -52,7 +52,7 @@ import { gsap } from 'gsap';
                 name="email"
                 [(ngModel)]="email"
                 required
-                class="w-full px-4 py-3 bg-dark-surface/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-neon-purple focus:ring-2 focus:ring-neon-purple/20 transition-all duration-300"
+                class="w-full px-4 py-3 bg-gray-900/70 border-2 border-neon-purple/80 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition-all duration-300"
                 placeholder="Enter your email"
                 [class.animate-shake]="showError"
               />
@@ -74,7 +74,7 @@ import { gsap } from 'gsap';
                 name="password"
                 [(ngModel)]="password"
                 required
-                class="w-full px-4 py-3 bg-dark-surface/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-neon-purple focus:ring-2 focus:ring-neon-purple/20 transition-all duration-300"
+                class="w-full px-4 py-3 bg-gray-900/70 border-2 border-neon-purple/80 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition-all duration-300"
                 placeholder="Enter your password"
                 [class.animate-shake]="showError"
               />
@@ -178,27 +178,28 @@ export class LoginComponent implements OnInit, AfterViewInit {
   ngAfterViewInit() {
     // GSAP animations
     gsap.from('.glass', {
-      duration: 1,
+      duration: 0.6,
       scale: 0.9,
       opacity: 0,
       ease: 'back.out(1.7)'
     });
 
     gsap.from('input', {
-      duration: 0.8,
+      duration: 0.5,
       y: 20,
       opacity: 0,
-      stagger: 0.1,
+      stagger: 0.05,
       ease: 'power3.out',
-      delay: 0.3
+      delay: 0.2,
+      clearProps: 'all'
     });
 
     gsap.from('.neon-button', {
-      duration: 0.8,
+      duration: 0.5,
       y: 20,
       opacity: 0,
       ease: 'power3.out',
-      delay: 0.6
+      delay: 0.4
     });
   }
 

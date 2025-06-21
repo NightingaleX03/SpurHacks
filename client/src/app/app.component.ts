@@ -1,18 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, Router } from '@angular/router';
-import { NavbarComponent } from './components/navbar/navbar.component';
+import { RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
-import { ThemeService } from './services/theme.service';
+import { NavbarComponent } from './components/navbar.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, RouterOutlet, NavbarComponent],
   template: `
-    <div class="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors duration-300">
-      <app-navbar *ngIf="!isAuthenticated"></app-navbar>
-      <main class="pt-0">
+    <div class="min-h-screen bg-dark-bg">
+      <app-navbar></app-navbar>
+      <main class="pt-20">
         <router-outlet></router-outlet>
       </main>
     </div>
@@ -22,11 +21,7 @@ import { ThemeService } from './services/theme.service';
 export class AppComponent implements OnInit {
   isAuthenticated = false;
 
-  constructor(
-    private authService: AuthService,
-    private themeService: ThemeService,
-    private router: Router
-  ) {}
+  constructor(private authService: AuthService) {}
 
   ngOnInit() {
     this.authService.isAuthenticated$.subscribe(
