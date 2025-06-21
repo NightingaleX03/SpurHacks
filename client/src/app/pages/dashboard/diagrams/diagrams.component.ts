@@ -49,6 +49,7 @@ declare var mermaid: any;
 
       <!-- Create/Preview View -->
       <ng-container *ngIf="viewMode === 'create'">
+        <!-- Generator View -->
         <div *ngIf="!mermaidCode">
           <div class="text-center mb-8">
             <h1 class="text-4xl font-bold text-white mb-2">Architecture Diagrams</h1>
@@ -95,24 +96,64 @@ declare var mermaid: any;
             </div>
           </div>
         </div>
-
+        
+        <!-- Diagram and Chat View -->
         <div *ngIf="mermaidCode" class="mt-8">
-          <div class="flex justify-between items-center mb-4">
-            <h1 class="text-3xl font-bold text-white">{{ selectedDiagram.name || 'Diagram Preview' }}</h1>
-            <button (click)="showListView()" class="action-button">Go back to designs</button>
-          </div>
-          <div class="p-4 bg-gray-900 rounded-lg shadow-lg mb-4">
-            <h3 class="text-xl font-semibold text-white mb-4">Generated Mermaid Code</h3>
-            <pre class="bg-gray-800 p-4 rounded-md overflow-x-auto text-sm"><code class="text-green-300">{{ mermaidCode }}</code></pre>
-            <div class="flex justify-end space-x-2 mt-4">
-              <button (click)="copyToClipboard()" class="action-button">Copy</button>
-              <button (click)="downloadDiagram('png')" class="action-button">Download PNG</button>
-              <button (click)="downloadDiagram('svg')" class="action-button">Download SVG</button>
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <!-- Left side (diagram) -->
+                <div class="lg:col-span-3">
+                    <div class="flex justify-between items-center mb-4">
+                        <h1 class="text-3xl font-bold text-white">{{ selectedDiagram.name || 'Diagram Preview' }}</h1>
+                        <button (click)="showListView()" class="action-button">Go back to designs</button>
+                    </div>
+                    <div class="p-4 bg-gray-900 rounded-lg shadow-lg mb-4">
+                        <h3 class="text-xl font-semibold text-white mb-4">Generated Mermaid Code</h3>
+                        <pre class="bg-gray-800 p-4 rounded-md overflow-x-auto text-sm"><code class="text-green-300">{{ mermaidCode }}</code></pre>
+                        <div class="flex justify-end space-x-2 mt-4">
+                            <button (click)="copyToClipboard()" class="action-button">Copy</button>
+                            <button (click)="downloadDiagram('png')" class="action-button">Download PNG</button>
+                            <button (click)="downloadDiagram('svg')" class="action-button">Download SVG</button>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg shadow-lg" id="mermaid-container">
+                        <div [innerHTML]="svg | safeHtml"></div>
+                    </div>
+                </div>
+
+                <!-- Right side (chat + share) -->
+                <div class="lg:col-span-2">
+                    <!-- Share section -->
+                    <div *ngIf="isEmployee" class="glass p-4 rounded-lg mb-6">
+                        <h3 class="text-xl font-semibold text-white mb-4">Share Diagram</h3>
+                        <div class="flex flex-col space-y-2">
+                            <label *ngFor="let emp of companyEmployees" class="flex items-center">
+                                <input type="checkbox" 
+                                       [checked]="isSharedWith(emp.id)"
+                                       (change)="toggleShare(emp.id, $event)"
+                                       class="form-checkbox h-5 w-5 text-neon-purple bg-gray-800 border-gray-600 rounded focus:ring-neon-purple">
+                                <span class="ml-2 text-white">{{ emp.name }}</span>
+                                <span class="ml-2 text-xs text-gray-400">{{ emp.email }}</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Chatbot section -->
+                    <div class="glass p-4 rounded-lg">
+                        <h3 class="text-xl font-semibold text-white mb-4">Chat with Diagram AI</h3>
+                        <div class="h-64 overflow-y-auto bg-dark-surface/50 rounded-lg p-2 mb-4 flex flex-col space-y-2">
+                            <div *ngFor="let msg of chatHistory" class="chat-message" [class.user]="msg.author === 'user'" [class.bot]="msg.author === 'bot'">
+                                <p>{{ msg.message }}</p>
+                            </div>
+                        </div>
+                        <form (ngSubmit)="sendChatMessage()" class="flex gap-2">
+                            <input [(ngModel)]="chatInput" name="chatInput"
+                                   placeholder="Ask about your diagram..."
+                                   class="flex-grow p-2 rounded bg-dark-surface/50 text-white border border-neon-purple/30">
+                            <button type="submit" class="action-button">Send</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="p-4 bg-white rounded-lg shadow-lg" id="mermaid-container">
-            <div [innerHTML]="svg | safeHtml"></div>
-          </div>
         </div>
 
         <div *ngIf="errorMessage" class="mt-8 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-300">
@@ -127,6 +168,9 @@ declare var mermaid: any;
     .diagram-type-button.selected { @apply bg-neon-purple text-white border-neon-purple; box-shadow: 0 0 8px theme('colors.neon-purple'); }
     .generate-button { @apply px-8 py-3 rounded-lg bg-gradient-to-r from-neon-purple to-electric-blue text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300; }
     .action-button { @apply px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-600 transition-colors; }
+    .chat-message { @apply p-2 rounded-lg max-w-xs; }
+    .chat-message.user { @apply bg-electric-blue text-white self-end; }
+    .chat-message.bot { @apply bg-gray-700 text-white self-start; }
   `],
 })
 export class DiagramsComponent implements OnInit, OnDestroy {
@@ -147,6 +191,10 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   currentUser: EnterpriseUser | User | null = null;
   canGenerateDiagrams = false;
   canViewDiagrams = false;
+  isEmployee = false;
+  companyEmployees: EnterpriseUser[] = [];
+  chatHistory: { author: 'user' | 'bot'; message: string }[] = [];
+  chatInput = '';
 
   private themeSubscription!: Subscription;
 
@@ -175,6 +223,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   }
 
   setPermissions() {
+    this.isEmployee = this.enterpriseService.isEmployee();
     if (this.currentUser && 'permissions' in this.currentUser) {
       this.canViewDiagrams = this.currentUser.permissions.canViewDiagrams;
       this.canGenerateDiagrams = this.currentUser.permissions.canGenerateDiagrams;
@@ -205,6 +254,50 @@ export class DiagramsComponent implements OnInit, OnDestroy {
     }
   }
 
+  loadCompanyEmployees() {
+    this.companyEmployees = this.enterpriseService.getCompanyEmployees()
+      .filter(emp => emp.id !== this.currentUser?.id);
+  }
+
+  isSharedWith(employeeId: string): boolean {
+    return this.selectedDiagram.permissions?.canView.includes(employeeId) ?? false;
+  }
+
+  toggleShare(employeeId: string, event: Event) {
+    if (!this.selectedDiagram || !this.selectedDiagram.id || !this.selectedDiagram.permissions) return;
+
+    const checked = (event.target as HTMLInputElement).checked;
+    const currentPermissions = { ...this.selectedDiagram.permissions };
+    const canView = [...currentPermissions.canView];
+
+    if (checked && !canView.includes(employeeId)) {
+      canView.push(employeeId);
+    } else if (!checked) {
+      const index = canView.indexOf(employeeId);
+      if (index > -1) {
+        canView.splice(index, 1);
+      }
+    }
+    
+    currentPermissions.canView = canView;
+    this.enterpriseService.updateDiagramPermissions(this.selectedDiagram.id, currentPermissions);
+    this.selectedDiagram.permissions = currentPermissions;
+  }
+
+  sendChatMessage() {
+    if (!this.chatInput.trim()) return;
+
+    this.chatHistory.push({ author: 'user', message: this.chatInput });
+    const userMessage = this.chatInput;
+    this.chatInput = '';
+
+    // Mock bot response
+    setTimeout(() => {
+        this.chatHistory.push({ author: 'bot', message: `I've received your prompt: "${userMessage}". I'm processing it now.` });
+        this.cdr.detectChanges();
+    }, 1000);
+  }
+
   showListView() {
     this.viewMode = 'list';
     this.resetGenerator();
@@ -219,9 +312,13 @@ export class DiagramsComponent implements OnInit, OnDestroy {
 
   viewDiagram(diagram: DiagramResource) {
     this.selectedDiagram = diagram;
-    this.mermaidCode = diagram.mermaid_code;
+    this.mermaidCode = diagram.mermaid_code || 'graph TD;\\n    A[Start] --> B{Is it?};\\n    B -->|Yes| C[OK];\\n    C --> D[End];\\n    B -->|No| E[Don\'t!];\\n    E --> D;'; // Provide a default diagram
     this.renderMermaid();
     this.viewMode = 'create';
+    if (this.isEmployee) {
+      this.loadCompanyEmployees();
+    }
+    this.chatHistory = [{ author: 'bot', message: `Hello! You are viewing '${diagram.name}'. How can I help you with this diagram?` }];
   }
 
   selectDiagramType(type: string) {
@@ -244,6 +341,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
           this.renderMermaid();
           this.isLoading = false;
           this.saveDiagram(this.mermaidCode, this.prompt);
+          if (this.isEmployee) this.loadCompanyEmployees();
         },
         error: (error) => {
           console.error('Error generating diagram:', error);
@@ -283,6 +381,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
     this.svg = null;
     this.errorMessage = null;
     this.selectedDiagram = {};
+    this.chatHistory = [];
   }
 
   renderMermaid() {
