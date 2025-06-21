@@ -9,7 +9,7 @@
   --dark-surface: #1A1A1D;
   --neon-purple: #8E2DE2;
   --electric-blue: #4A00E0;
-  --highlight: #00FFF7;
+  --highlight: rgba(0, 255, 247, 0.2);
   --dark-text: #FFFFFF;
   
   // Light Mode Colors
@@ -55,12 +55,12 @@ body {
 
 // Reduced brightness neon glow effects
 .neon-glow {
-  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
-  opacity: 0.8;
+  text-shadow: 0 0 3px currentColor, 0 0 6px currentColor;
+  opacity: 0.6;
 }
 
 .neon-border {
-  box-shadow: 0 0 5px currentColor, inset 0 0 5px currentColor;
+  box-shadow: 0 0 3px currentColor, inset 0 0 3px currentColor;
 }
 
 .neon-button {
@@ -85,7 +85,7 @@ body {
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(142, 45, 226, 0.2);
+    box-shadow: 0 10px 20px rgba(142, 45, 226, 0.1);
   }
 }
 
@@ -216,5 +216,5 @@ body {
 }
 
 .text-highlight {
-  color: rgba(0, 255, 247, 0.8) !important;
+  color: rgba(0, 255, 247, 0.2) !important;
 } 
