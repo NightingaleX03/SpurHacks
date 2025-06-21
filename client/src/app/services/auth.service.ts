@@ -1,19 +1,15 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role: 'enterprise_employer' | 'enterprise_employee' | 'education_user';
-}
-
-export interface DemoUser {
-  email: string;
   password: string;
   name: string;
-  role: User['role'];
+  role: 'enterprise_employer' | 'enterprise_employee' | 'education_user' | 'regular_user';
+  [key: string]: any;
 }
 
 @Injectable({
@@ -26,29 +22,10 @@ export class AuthService {
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  // Hardcoded demo users
-  private readonly demoUsers: DemoUser[] = [
-    {
-      email: 'enterprise_employer@demo.com',
-      password: 'password123',
-      name: 'Enterprise Employer',
-      role: 'enterprise_employer'
-    },
-    {
-      email: 'enterprise_employee@demo.com',
-      password: 'password123',
-      name: 'Enterprise Employee',
-      role: 'enterprise_employee'
-    },
-    {
-      email: 'education_user@demo.com',
-      password: 'password123',
-      name: 'Education User',
-      role: 'education_user'
-    }
-  ];
+  private users: User[] = [];
+  private usersLoaded = false;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private http: HttpClient) {
     // Check if user is already logged in (from localStorage)
     const token = localStorage.getItem('auth_token');
     if (token) {
@@ -56,40 +33,70 @@ export class AuthService {
       const user = this.getUserFromToken(token);
       this.currentUserSubject.next(user);
     }
+    // Load users from JSON
+    this.loadUsers();
+  }
+
+  private loadUsers() {
+    if (this.usersLoaded) return;
+    console.log('Loading users from sample data...');
+    this.http.get<any>('assets/data/sample-data.json').subscribe({
+      next: (data) => {
+        console.log('Sample data loaded:', data);
+        this.users = [
+          ...(data.enterprise_users || []),
+          ...(data.regular_users || [])
+        ];
+        console.log('Users loaded:', this.users);
+        this.usersLoaded = true;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+      }
+    });
   }
 
   login(email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> {
     return new Promise((resolve) => {
-      // Mock authentication delay
-      setTimeout(() => {
-        const demoUser = this.demoUsers.find(user => 
-          user.email === email && user.password === password
-        );
-
-        if (demoUser) {
-          const user: User = {
-            id: '1',
-            email: demoUser.email,
-            name: demoUser.name,
-            role: demoUser.role
-          };
-          
-          const mockToken = 'mock_jwt_token_' + Date.now();
-          localStorage.setItem('auth_token', mockToken);
-          localStorage.setItem('user', JSON.stringify(user));
-          
-          this.isAuthenticatedSubject.next(true);
-          this.currentUserSubject.next(user);
-          
-          resolve({ success: true, user });
-        } else {
-          resolve({ 
-            success: false, 
-            error: 'Invalid email or password. Use one of the demo accounts.' 
-          });
-        }
-      }, 1000); // Simulate network delay
+      // Wait for users to be loaded
+      if (!this.usersLoaded) {
+        this.http.get<any>('assets/data/sample-data.json').subscribe(data => {
+          this.users = [
+            ...(data.enterprise_users || []),
+            ...(data.regular_users || [])
+          ];
+          this.usersLoaded = true;
+          this.doLogin(email, password, resolve);
+        });
+      } else {
+        this.doLogin(email, password, resolve);
+      }
     });
+  }
+
+  private doLogin(email: string, password: string, resolve: (result: { success: boolean; user?: User; error?: string }) => void) {
+    console.log('Attempting login with:', { email, password });
+    console.log('Available users:', this.users);
+    
+    // Check both email and password
+    const user = this.users.find(u => u.email === email && u.password === password);
+    console.log('Found user:', user);
+    
+    if (user) {
+      const mockToken = 'mock_jwt_token_' + Date.now();
+      localStorage.setItem('auth_token', mockToken);
+      localStorage.setItem('user', JSON.stringify(user));
+      this.isAuthenticatedSubject.next(true);
+      this.currentUserSubject.next(user);
+      console.log('Login successful for:', user.name);
+      resolve({ success: true, user });
+    } else {
+      console.log('Login failed - no matching user found');
+      resolve({
+        success: false,
+        error: 'Invalid email or password. Use one of the sample accounts with their ID as password.'
+      });
+    }
   }
 
   logout(): void {
@@ -104,8 +111,8 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
-  getDemoUsers(): DemoUser[] {
-    return this.demoUsers;
+  getSampleUsers(): User[] {
+    return this.users;
   }
 
   private getUserFromToken(token: string): User | null {

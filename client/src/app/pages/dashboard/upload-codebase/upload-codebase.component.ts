@@ -1,6 +1,7 @@
 import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { gsap } from 'gsap';
+// import { EnterpriseService } from '../../services/enterprise.service';
 
 @Component({
   selector: 'app-upload-codebase',
@@ -19,6 +20,16 @@ import { gsap } from 'gsap';
   styles: []
 })
 export class UploadCodebaseComponent implements AfterViewInit {
+  // isEmployee = false;
+  // canUploadCodebases = true;
+
+  // constructor(private enterpriseService: EnterpriseService) {
+  //   this.isEmployee = this.enterpriseService.isEmployee();
+  //   if (this.isEmployee) {
+  //     this.canUploadCodebases = this.enterpriseService.canAccessFeature('canUploadCodebases');
+  //   }
+  // }
+
   ngAfterViewInit() {
     gsap.from('.upload-area', {
       duration: 0.8,

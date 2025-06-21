@@ -1,0 +1,497 @@
+{
+  "companies": [
+    {
+      "id": "comp_1",
+      "name": "TechCorp Solutions",
+      "industry": "Technology",
+      "size": "Enterprise",
+      "founded": "2018",
+      "location": "San Francisco, CA",
+      "website": "https://techcorp-solutions.com"
+    },
+    {
+      "id": "comp_2", 
+      "name": "InnovateSoft Inc",
+      "industry": "Software Development",
+      "size": "Mid-size",
+      "founded": "2020",
+      "location": "Austin, TX",
+      "website": "https://innovatesoft.com"
+    },
+    {
+      "id": "comp_3",
+      "name": "DataFlow Systems",
+      "industry": "Data Analytics",
+      "size": "Enterprise",
+      "founded": "2019",
+      "location": "Seattle, WA",
+      "website": "https://dataflow-systems.com"
+    },
+    {
+      "id": "comp_4",
+      "name": "CloudScale Technologies",
+      "industry": "Cloud Computing",
+      "size": "Startup",
+      "founded": "2022",
+      "location": "Denver, CO",
+      "website": "https://cloudscale-tech.com"
+    },
+    {
+      "id": "comp_5",
+      "name": "SecureNet Solutions",
+      "industry": "Cybersecurity",
+      "size": "Mid-size",
+      "founded": "2021",
+      "location": "Boston, MA",
+      "website": "https://securenet-solutions.com"
+    }
+  ],
+  "enterprise_users": [
+    {
+      "id": "emp_1",
+      "email": "sarah.johnson@techcorp-solutions.com",
+      "password": "emp_1",
+      "name": "Sarah Johnson",
+      "role": "enterprise_employer",
+      "company_id": "comp_1",
+      "position": "CTO",
+      "department": "Engineering",
+      "hire_date": "2020-03-15",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": true,
+        "canViewCodebases": true,
+        "canUploadCodebases": true,
+        "canViewSecurity": true,
+        "canViewDevOps": true,
+        "canViewQueryEngine": true,
+        "canManageTeam": true
+      }
+    },
+    {
+      "id": "emp_2",
+      "email": "mike.chen@techcorp-solutions.com",
+      "password": "emp_2",
+      "name": "Mike Chen",
+      "role": "enterprise_employee",
+      "company_id": "comp_1",
+      "position": "Senior Developer",
+      "department": "Engineering",
+      "hire_date": "2021-06-20",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": true,
+        "canViewCodebases": true,
+        "canUploadCodebases": false,
+        "canViewSecurity": false,
+        "canViewDevOps": false,
+        "canViewQueryEngine": true,
+        "canManageTeam": false
+      }
+    },
+    {
+      "id": "emp_3",
+      "email": "emma.rodriguez@techcorp-solutions.com",
+      "password": "emp_3",
+      "name": "Emma Rodriguez",
+      "role": "enterprise_employee",
+      "company_id": "comp_1",
+      "position": "Junior Developer",
+      "department": "Engineering",
+      "hire_date": "2022-01-10",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": false,
+        "canViewCodebases": true,
+        "canUploadCodebases": false,
+        "canViewSecurity": false,
+        "canViewDevOps": false,
+        "canViewQueryEngine": true,
+        "canManageTeam": false
+      }
+    },
+    {
+      "id": "emp_4",
+      "email": "david.kim@innovatesoft.com",
+      "password": "emp_4",
+      "name": "David Kim",
+      "role": "enterprise_employer",
+      "company_id": "comp_2",
+      "position": "VP of Engineering",
+      "department": "Engineering",
+      "hire_date": "2020-08-12",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": true,
+        "canViewCodebases": true,
+        "canUploadCodebases": true,
+        "canViewSecurity": true,
+        "canViewDevOps": true,
+        "canViewQueryEngine": true,
+        "canManageTeam": true
+      }
+    },
+    {
+      "id": "emp_5",
+      "email": "lisa.wang@innovatesoft.com",
+      "password": "emp_5",
+      "name": "Lisa Wang",
+      "role": "enterprise_employee",
+      "company_id": "comp_2",
+      "position": "Full Stack Developer",
+      "department": "Engineering",
+      "hire_date": "2021-09-05",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": true,
+        "canViewCodebases": true,
+        "canUploadCodebases": true,
+        "canViewSecurity": false,
+        "canViewDevOps": false,
+        "canViewQueryEngine": true,
+        "canManageTeam": false
+      }
+    },
+    {
+      "id": "emp_6",
+      "email": "alex.thompson@dataflow-systems.com",
+      "password": "emp_6",
+      "name": "Alex Thompson",
+      "role": "enterprise_employer",
+      "company_id": "comp_3",
+      "position": "Engineering Director",
+      "department": "Engineering",
+      "hire_date": "2019-11-03",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": true,
+        "canViewCodebases": true,
+        "canUploadCodebases": true,
+        "canViewSecurity": true,
+        "canViewDevOps": true,
+        "canViewQueryEngine": true,
+        "canManageTeam": true
+      }
+    },
+    {
+      "id": "emp_7",
+      "email": "jessica.brown@dataflow-systems.com",
+      "password": "emp_7",
+      "name": "Jessica Brown",
+      "role": "enterprise_employee",
+      "company_id": "comp_3",
+      "position": "Data Engineer",
+      "department": "Data Science",
+      "hire_date": "2020-04-18",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": true,
+        "canViewCodebases": true,
+        "canUploadCodebases": false,
+        "canViewSecurity": false,
+        "canViewDevOps": true,
+        "canViewQueryEngine": true,
+        "canManageTeam": false
+      }
+    },
+    {
+      "id": "emp_8",
+      "email": "ryan.lee@cloudscale-tech.com",
+      "password": "emp_8",
+      "name": "Ryan Lee",
+      "role": "enterprise_employer",
+      "company_id": "comp_4",
+      "position": "Founder & CTO",
+      "department": "Engineering",
+      "hire_date": "2022-02-01",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": true,
+        "canViewCodebases": true,
+        "canUploadCodebases": true,
+        "canViewSecurity": true,
+        "canViewDevOps": true,
+        "canViewQueryEngine": true,
+        "canManageTeam": true
+      }
+    },
+    {
+      "id": "emp_9",
+      "email": "maria.garcia@securenet-solutions.com",
+      "password": "emp_9",
+      "name": "Maria Garcia",
+      "role": "enterprise_employer",
+      "company_id": "comp_5",
+      "position": "Security Director",
+      "department": "Security",
+      "hire_date": "2021-03-22",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": true,
+        "canViewCodebases": true,
+        "canUploadCodebases": true,
+        "canViewSecurity": true,
+        "canViewDevOps": true,
+        "canViewQueryEngine": true,
+        "canManageTeam": true
+      }
+    },
+    {
+      "id": "emp_10",
+      "email": "kevin.zhang@securenet-solutions.com",
+      "password": "emp_10",
+      "name": "Kevin Zhang",
+      "role": "enterprise_employee",
+      "company_id": "comp_5",
+      "position": "Security Analyst",
+      "department": "Security",
+      "hire_date": "2021-07-14",
+      "permissions": {
+        "canViewDiagrams": true,
+        "canGenerateDiagrams": false,
+        "canViewCodebases": true,
+        "canUploadCodebases": false,
+        "canViewSecurity": true,
+        "canViewDevOps": false,
+        "canViewQueryEngine": true,
+        "canManageTeam": false
+      }
+    }
+  ],
+  "regular_users": [
+    {
+      "id": "user_1",
+      "email": "john.doe@example.com",
+      "password": "user_1",
+      "name": "John Doe",
+      "role": "education_user",
+      "institution": "Stanford University",
+      "position": "Computer Science Student",
+      "join_date": "2023-09-01",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_2",
+      "email": "jane.smith@example.com",
+      "password": "user_2",
+      "name": "Jane Smith",
+      "role": "education_user",
+      "institution": "MIT",
+      "position": "Graduate Student",
+      "join_date": "2023-08-15",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_3",
+      "email": "robert.wilson@example.com",
+      "password": "user_3",
+      "name": "Robert Wilson",
+      "role": "education_user",
+      "institution": "UC Berkeley",
+      "position": "Professor",
+      "join_date": "2023-07-20",
+      "subscription": "Academic"
+    },
+    {
+      "id": "user_4",
+      "email": "sophia.chen@example.com",
+      "password": "user_4",
+      "name": "Sophia Chen",
+      "role": "education_user",
+      "institution": "Carnegie Mellon University",
+      "position": "Research Assistant",
+      "join_date": "2023-10-05",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_5",
+      "email": "michael.johnson@example.com",
+      "password": "user_5",
+      "name": "Michael Johnson",
+      "role": "education_user",
+      "institution": "Georgia Tech",
+      "position": "PhD Student",
+      "join_date": "2023-06-12",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_6",
+      "email": "amanda.davis@example.com",
+      "password": "user_6",
+      "name": "Amanda Davis",
+      "role": "education_user",
+      "institution": "University of Washington",
+      "position": "Lecturer",
+      "join_date": "2023-09-30",
+      "subscription": "Academic"
+    },
+    {
+      "id": "user_7",
+      "email": "daniel.martinez@example.com",
+      "password": "user_7",
+      "name": "Daniel Martinez",
+      "role": "education_user",
+      "institution": "University of Texas",
+      "position": "Undergraduate Student",
+      "join_date": "2023-11-08",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_8",
+      "email": "emily.taylor@example.com",
+      "password": "user_8",
+      "name": "Emily Taylor",
+      "role": "education_user",
+      "institution": "University of Michigan",
+      "position": "Teaching Assistant",
+      "join_date": "2023-08-25",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_9",
+      "email": "christopher.anderson@example.com",
+      "password": "user_9",
+      "name": "Christopher Anderson",
+      "role": "education_user",
+      "institution": "University of Illinois",
+      "position": "Associate Professor",
+      "join_date": "2023-07-10",
+      "subscription": "Academic"
+    },
+    {
+      "id": "user_10",
+      "email": "olivia.thomas@example.com",
+      "password": "user_10",
+      "name": "Olivia Thomas",
+      "role": "education_user",
+      "institution": "University of Pennsylvania",
+      "position": "Master's Student",
+      "join_date": "2023-10-20",
+      "subscription": "Student"
+    }
+  ],
+  "shared_diagrams": [
+    {
+      "id": "diag_1",
+      "name": "User Authentication Flow",
+      "type": "Sequence Diagram",
+      "created_by": "emp_1",
+      "company_id": "comp_1",
+      "shared_with": ["emp_2", "emp_3"],
+      "created_at": "2024-01-20T10:30:00Z",
+      "last_modified": "2024-01-25T14:15:00Z",
+      "description": "Complete authentication flow including login, registration, and password reset"
+    },
+    {
+      "id": "diag_2",
+      "name": "Microservices Architecture",
+      "type": "Component Diagram",
+      "created_by": "emp_1",
+      "company_id": "comp_1",
+      "shared_with": ["emp_2"],
+      "created_at": "2024-01-18T09:45:00Z",
+      "last_modified": "2024-01-22T16:20:00Z",
+      "description": "High-level architecture showing service communication and data flow"
+    },
+    {
+      "id": "diag_3",
+      "name": "Database Schema Design",
+      "type": "Class Diagram",
+      "created_by": "emp_4",
+      "company_id": "comp_2",
+      "shared_with": ["emp_5"],
+      "created_at": "2024-01-15T11:20:00Z",
+      "last_modified": "2024-01-28T13:45:00Z",
+      "description": "Complete database schema with relationships and constraints"
+    },
+    {
+      "id": "diag_4",
+      "name": "API Gateway Pattern",
+      "type": "Deployment Diagram",
+      "created_by": "emp_6",
+      "company_id": "comp_3",
+      "shared_with": ["emp_7"],
+      "created_at": "2024-01-12T08:30:00Z",
+      "last_modified": "2024-01-26T10:15:00Z",
+      "description": "API gateway deployment with load balancers and security layers"
+    },
+    {
+      "id": "diag_5",
+      "name": "Security Architecture",
+      "type": "Component Diagram",
+      "created_by": "emp_9",
+      "company_id": "comp_5",
+      "shared_with": ["emp_10"],
+      "created_at": "2024-01-10T15:45:00Z",
+      "last_modified": "2024-01-24T12:30:00Z",
+      "description": "Security layers and authentication mechanisms"
+    }
+  ],
+  "shared_codebases": [
+    {
+      "id": "code_1",
+      "name": "Frontend React App",
+      "description": "Main customer-facing application built with React and TypeScript",
+      "uploaded_by": "emp_1",
+      "company_id": "comp_1",
+      "shared_with": ["emp_2", "emp_3"],
+      "created_at": "2024-01-10T14:20:00Z",
+      "last_modified": "2024-01-28T09:30:00Z",
+      "language": "TypeScript",
+      "framework": "React",
+      "size": "2.4 MB"
+    },
+    {
+      "id": "code_2",
+      "name": "Backend API Service",
+      "description": "RESTful API service built with Node.js and Express",
+      "uploaded_by": "emp_4",
+      "company_id": "comp_2",
+      "shared_with": ["emp_5"],
+      "created_at": "2024-01-08T16:45:00Z",
+      "last_modified": "2024-01-27T11:15:00Z",
+      "language": "JavaScript",
+      "framework": "Express.js",
+      "size": "1.8 MB"
+    },
+    {
+      "id": "code_3",
+      "name": "Data Processing Pipeline",
+      "description": "ETL pipeline for processing large datasets",
+      "uploaded_by": "emp_6",
+      "company_id": "comp_3",
+      "shared_with": ["emp_7"],
+      "created_at": "2024-01-05T10:30:00Z",
+      "last_modified": "2024-01-25T14:45:00Z",
+      "language": "Python",
+      "framework": "Apache Spark",
+      "size": "3.2 MB"
+    },
+    {
+      "id": "code_4",
+      "name": "Cloud Infrastructure",
+      "description": "Terraform configurations for cloud infrastructure",
+      "uploaded_by": "emp_8",
+      "company_id": "comp_4",
+      "shared_with": [],
+      "created_at": "2024-01-03T12:15:00Z",
+      "last_modified": "2024-01-23T17:20:00Z",
+      "language": "HCL",
+      "framework": "Terraform",
+      "size": "0.9 MB"
+    },
+    {
+      "id": "code_5",
+      "name": "Security Monitoring Tools",
+      "description": "Custom security monitoring and alerting system",
+      "uploaded_by": "emp_9",
+      "company_id": "comp_5",
+      "shared_with": ["emp_10"],
+      "created_at": "2024-01-01T09:00:00Z",
+      "last_modified": "2024-01-21T13:30:00Z",
+      "language": "Python",
+      "framework": "Custom",
+      "size": "1.5 MB"
+    }
+  ]
+} 

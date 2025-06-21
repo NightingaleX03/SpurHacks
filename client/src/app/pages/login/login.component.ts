@@ -33,10 +33,11 @@ import { gsap } from 'gsap';
         <div class="mb-6 p-4 bg-gradient-to-r from-neon-purple/20 to-electric-blue/20 rounded-lg border border-neon-purple/30">
           <h3 class="text-sm font-semibold text-highlight mb-2">Demo Accounts:</h3>
           <div class="text-xs text-gray-400 space-y-1">
-            <div>• enterprise_employer&#64;demo.com</div>
-            <div>• enterprise_employee&#64;demo.com</div>
-            <div>• education_user&#64;demo.com</div>
-            <div class="text-highlight mt-1">Password: password123</div>
+            <div>• sarah.johnson&#64;techcorp-solutions.com (Password: emp_1)</div>
+            <div>• mike.chen&#64;techcorp-solutions.com (Password: emp_2)</div>
+            <div>• david.kim&#64;innovatesoft.com (Password: emp_4)</div>
+            <div>• john.doe&#64;example.com (Password: user_1)</div>
+            <div class="text-highlight mt-1">Use the user ID as password</div>
           </div>
         </div>
 
@@ -102,6 +103,7 @@ import { gsap } from 'gsap';
           <!-- Login Button -->
           <button
             type="submit"
+            (click)="testClick()"
             [disabled]="isLoading"
             class="neon-button w-full py-3 bg-gradient-to-r from-neon-purple to-electric-blue text-white font-semibold rounded-lg border border-neon-purple hover:border-highlight transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -121,25 +123,25 @@ import { gsap } from 'gsap';
           <p class="text-center text-sm text-gray-400">Quick login with demo accounts:</p>
           <div class="grid grid-cols-1 gap-2">
             <button
-              (click)="quickLogin('enterprise_employer@demo.com')"
+              (click)="quickLogin('sarah.johnson@techcorp-solutions.com', 'emp_1')"
               class="text-left p-3 bg-dark-surface/30 border border-gray-600 rounded-lg hover:border-neon-purple transition-colors duration-300"
             >
               <div class="text-sm font-medium text-white">Enterprise Employer</div>
-              <div class="text-xs text-gray-400">enterprise_employer&#64;demo.com</div>
+              <div class="text-xs text-gray-400">sarah.johnson&#64;techcorp-solutions.com</div>
             </button>
             <button
-              (click)="quickLogin('enterprise_employee@demo.com')"
+              (click)="quickLogin('mike.chen@techcorp-solutions.com', 'emp_2')"
               class="text-left p-3 bg-dark-surface/30 border border-gray-600 rounded-lg hover:border-neon-purple transition-colors duration-300"
             >
               <div class="text-sm font-medium text-white">Enterprise Employee</div>
-              <div class="text-xs text-gray-400">enterprise_employee&#64;demo.com</div>
+              <div class="text-xs text-gray-400">mike.chen&#64;techcorp-solutions.com</div>
             </button>
             <button
-              (click)="quickLogin('education_user@demo.com')"
+              (click)="quickLogin('john.doe@example.com', 'user_1')"
               class="text-left p-3 bg-dark-surface/30 border border-gray-600 rounded-lg hover:border-neon-purple transition-colors duration-300"
             >
               <div class="text-sm font-medium text-white">Education User</div>
-              <div class="text-xs text-gray-400">education_user&#64;demo.com</div>
+              <div class="text-xs text-gray-400">john.doe&#64;example.com</div>
             </button>
           </div>
         </div>
@@ -155,6 +157,12 @@ import { gsap } from 'gsap';
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-5px); }
       75% { transform: translateX(5px); }
+    }
+
+    .neon-button {
+      opacity: 1 !important;
+      visibility: visible !important;
+      display: block !important;
     }
   `]
 })
@@ -199,39 +207,47 @@ export class LoginComponent implements OnInit, AfterViewInit {
       y: 20,
       opacity: 0,
       ease: 'power3.out',
-      delay: 0.4
+      delay: 0.4,
+      clearProps: 'all'
     });
   }
 
   async onLogin() {
+    console.log('Login attempt started');
     if (!this.email || !this.password) {
       this.showErrorMessage('Please enter both email and password');
       return;
     }
 
+    console.log('Login credentials:', { email: this.email, password: this.password });
     this.isLoading = true;
     this.errorMessage = '';
     this.showError = false;
 
     try {
+      console.log('Calling authService.login...');
       const result = await this.authService.login(this.email, this.password);
+      console.log('Login result:', result);
       
       if (result.success && result.user) {
+        console.log('Login successful, navigating to dashboard...');
         // Redirect to dashboard based on role
         this.router.navigate(['/dashboard']);
       } else {
+        console.log('Login failed:', result.error);
         this.showErrorMessage(result.error || 'Login failed');
       }
     } catch (error) {
+      console.error('Login error:', error);
       this.showErrorMessage('An error occurred during login');
     } finally {
       this.isLoading = false;
     }
   }
 
-  quickLogin(email: string) {
+  quickLogin(email: string, password: string) {
     this.email = email;
-    this.password = 'password123';
+    this.password = password;
     this.onLogin();
   }
 
@@ -247,5 +263,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       this.showError = false;
     }, 5000);
+  }
+
+  testClick() {
+    // Temporary click handler
+    console.log('Test click handler called');
   }
 } 

@@ -47,6 +47,10 @@ import { gsap } from 'gsap';
               <span class="sidebar-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M4 12h16"/><path d="M12 4v16"/></svg></span>
               <span class="hidden md:inline ml-3">DevOps</span>
             </a>
+            <a *ngIf="user?.role === 'enterprise_employer'" routerLink="enterprise-management" routerLinkActive="active" class="sidebar-link">
+              <span class="sidebar-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4V6a4 4 0 00-8 0v4m12 0a4 4 0 01-8 0m8 0V6a4 4 0 00-8 0v4"/></svg></span>
+              <span class="hidden md:inline ml-3">Enterprise Management</span>
+            </a>
             
             <div class="flex-grow"></div>
 

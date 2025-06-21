@@ -1,6 +1,7 @@
 import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { gsap } from 'gsap';
+// import { EnterpriseService } from '../../services/enterprise.service';
 
 @Component({
   selector: 'app-query-engine',
@@ -20,10 +21,10 @@ import { gsap } from 'gsap';
             <span class="text-xs text-gray-400">/src/app/services/</span>
           </div>
           <pre class="bg-dark-surface/80 rounded p-4 text-xs text-white overflow-x-auto"><code>// login() method
-if (user.email === input.email &amp;&amp; user.password === input.password) &#123;
+if (user.email === input.email && user.password === input.password) {{ '{' }}
   // Auth success
   return token;
-&#125;</code></pre>
+{{ '}' }}</code></pre>
         </div>
         <div class="glass p-6 rounded-xl code-card">
           <div class="flex items-center justify-between cursor-pointer mb-2">
@@ -31,12 +32,12 @@ if (user.email === input.email &amp;&amp; user.password === input.password) &#12
             <span class="text-xs text-gray-400">/src/app/guards/</span>
           </div>
           <pre class="bg-dark-surface/80 rounded p-4 text-xs text-white overflow-x-auto"><code>// canActivate()
-if (authService.isAuthenticated) &#123;
+if (authService.isAuthenticated) {{ '{' }}
   return true;
-&#125; else &#123;
+{{ '}' }} else {{ '{' }}
   router.navigate(['/login']);
   return false;
-&#125;</code></pre>
+{{ '}' }}</code></pre>
         </div>
       </div>
     </div>
@@ -44,6 +45,16 @@ if (authService.isAuthenticated) &#123;
   styles: []
 })
 export class QueryEngineComponent implements AfterViewInit {
+  // isEmployee = false;
+  // canViewQueryEngine = true;
+
+  // constructor(private enterpriseService: EnterpriseService) {
+  //   this.isEmployee = this.enterpriseService.isEmployee();
+  //   if (this.isEmployee) {
+  //     this.canViewQueryEngine = this.enterpriseService.canAccessFeature('canViewQueryEngine');
+  //   }
+  // }
+
   ngAfterViewInit() {
     gsap.from('.code-card', {
       duration: 0.8,

@@ -9,6 +9,7 @@ import { QueryEngineComponent } from './pages/dashboard/query-engine/query-engin
 import { UploadCodebaseComponent } from './pages/dashboard/upload-codebase/upload-codebase.component';
 import { SecurityComponent } from './pages/dashboard/security/security.component';
 import { DevOpsComponent } from './pages/dashboard/devops/devops.component';
+import { EnterpriseManagementComponent } from './pages/dashboard/enterprise-management/enterprise-management.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -26,7 +27,8 @@ export const routes: Routes = [
       { path: 'query-engine', component: QueryEngineComponent },
       { path: 'upload-codebase', component: UploadCodebaseComponent },
       { path: 'security', component: SecurityComponent },
-      { path: 'devops', component: DevOpsComponent }
+      { path: 'devops', component: DevOpsComponent },
+      { path: 'enterprise-management', component: EnterpriseManagementComponent }
     ]
   },
   { path: '**', redirectTo: '' }

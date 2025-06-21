@@ -1,278 +1,212 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService, User } from './auth.service';
+import { HttpClient } from '@angular/common/http';
 
-export interface Employee {
-  id: string;
-  email: string;
-  name: string;
-  role: 'enterprise_employee';
-  employerId: string;
-  permissions: EmployeePermissions;
-  createdAt: Date;
-  lastActive: Date;
-}
-
-export interface EmployeePermissions {
-  canViewDiagrams: boolean;
-  canGenerateDiagrams: boolean;
-  canViewCodebases: boolean;
-  canUploadCodebases: boolean;
-  canViewSecurity: boolean;
-  canViewDevOps: boolean;
-  canViewQueryEngine: boolean;
-  canManageTeam: boolean;
-}
-
-export interface EnterpriseOrganization {
+export interface Company {
   id: string;
   name: string;
-  employerId: string;
-  employees: Employee[];
-  sharedDiagrams: SharedDiagram[];
-  sharedCodebases: SharedCodebase[];
-  createdAt: Date;
+  industry: string;
+  size: string;
+  founded: string;
+  location: string;
+  website: string;
+}
+
+export interface EnterpriseUser extends User {
+  company_id: string;
+  position: string;
+  department: string;
+  hire_date: string;
+  permissions: {
+    canViewDiagrams: boolean;
+    canGenerateDiagrams: boolean;
+    canViewCodebases: boolean;
+    canUploadCodebases: boolean;
+    canViewSecurity: boolean;
+    canViewDevOps: boolean;
+    canViewQueryEngine: boolean;
+    canManageTeam: boolean;
+  };
 }
 
 export interface SharedDiagram {
   id: string;
   name: string;
   type: string;
-  createdBy: string;
-  sharedWith: string[];
-  createdAt: Date;
-  lastModified: Date;
+  created_by: string;
+  company_id: string;
+  shared_with: string[];
+  created_at: string;
+  last_modified: string;
+  description: string;
 }
 
 export interface SharedCodebase {
   id: string;
   name: string;
   description: string;
-  uploadedBy: string;
-  sharedWith: string[];
-  createdAt: Date;
-  lastModified: Date;
+  uploaded_by: string;
+  company_id: string;
+  shared_with: string[];
+  created_at: string;
+  last_modified: string;
+  language: string;
+  framework: string;
+  size: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class EnterpriseService {
-  private currentOrganizationSubject = new BehaviorSubject<EnterpriseOrganization | null>(null);
-  private employeesSubject = new BehaviorSubject<Employee[]>([]);
-  private sharedDiagramsSubject = new BehaviorSubject<SharedDiagram[]>([]);
-  private sharedCodebasesSubject = new BehaviorSubject<SharedCodebase[]>([]);
+  private companies: Company[] = [];
+  private enterpriseUsers: EnterpriseUser[] = [];
+  private sharedDiagrams: SharedDiagram[] = [];
+  private sharedCodebases: SharedCodebase[] = [];
+  private dataLoaded = false;
 
-  public currentOrganization$ = this.currentOrganizationSubject.asObservable();
-  public employees$ = this.employeesSubject.asObservable();
-  public sharedDiagrams$ = this.sharedDiagramsSubject.asObservable();
-  public sharedCodebases$ = this.sharedCodebasesSubject.asObservable();
-
-  // Mock data for demo purposes
-  private mockOrganization: EnterpriseOrganization = {
-    id: 'org_1',
-    name: 'TechCorp Solutions',
-    employerId: 'enterprise_employer@demo.com',
-    employees: [
-      {
-        id: 'emp_1',
-        email: 'enterprise_employee@demo.com',
-        name: 'Enterprise Employee',
-        role: 'enterprise_employee',
-        employerId: 'enterprise_employer@demo.com',
-        permissions: {
-          canViewDiagrams: true,
-          canGenerateDiagrams: true,
-          canViewCodebases: true,
-          canUploadCodebases: false,
-          canViewSecurity: false,
-          canViewDevOps: false,
-          canViewQueryEngine: true,
-          canManageTeam: false
-        },
-        createdAt: new Date('2024-01-15'),
-        lastActive: new Date()
-      }
-    ],
-    sharedDiagrams: [
-      {
-        id: 'diag_1',
-        name: 'User Authentication Flow',
-        type: 'Sequence Diagram',
-        createdBy: 'enterprise_employer@demo.com',
-        sharedWith: ['enterprise_employee@demo.com'],
-        createdAt: new Date('2024-01-20'),
-        lastModified: new Date('2024-01-25')
-      },
-      {
-        id: 'diag_2',
-        name: 'Microservices Architecture',
-        type: 'Component Diagram',
-        createdBy: 'enterprise_employer@demo.com',
-        sharedWith: ['enterprise_employee@demo.com'],
-        createdAt: new Date('2024-01-18'),
-        lastModified: new Date('2024-01-22')
-      }
-    ],
-    sharedCodebases: [
-      {
-        id: 'code_1',
-        name: 'Frontend React App',
-        description: 'Main customer-facing application',
-        uploadedBy: 'enterprise_employer@demo.com',
-        sharedWith: ['enterprise_employee@demo.com'],
-        createdAt: new Date('2024-01-10'),
-        lastModified: new Date('2024-01-28')
-      }
-    ],
-    createdAt: new Date('2024-01-01')
-  };
-
-  constructor(private authService: AuthService) {
-    this.initializeOrganization();
+  constructor(
+    private authService: AuthService,
+    private http: HttpClient
+  ) {
+    this.loadEnterpriseData();
   }
 
-  private initializeOrganization() {
-    const currentUser = this.authService.getCurrentUser();
-    if (currentUser?.role === 'enterprise_employer') {
-      this.currentOrganizationSubject.next(this.mockOrganization);
-      this.employeesSubject.next(this.mockOrganization.employees);
-      this.sharedDiagramsSubject.next(this.mockOrganization.sharedDiagrams);
-      this.sharedCodebasesSubject.next(this.mockOrganization.sharedCodebases);
-    }
-  }
-
-  // Employer methods
-  getEmployees(): Observable<Employee[]> {
-    return this.employees$;
-  }
-
-  updateEmployeePermissions(employeeId: string, permissions: Partial<EmployeePermissions>): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const employees = this.employeesSubject.value;
-        const employeeIndex = employees.findIndex(emp => emp.id === employeeId);
-        
-        if (employeeIndex !== -1) {
-          employees[employeeIndex] = {
-            ...employees[employeeIndex],
-            permissions: { ...employees[employeeIndex].permissions, ...permissions }
-          };
-          this.employeesSubject.next([...employees]);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 500);
+  private loadEnterpriseData() {
+    if (this.dataLoaded) return;
+    
+    this.http.get<any>('assets/data/sample-data.json').subscribe(data => {
+      this.companies = data.companies || [];
+      this.enterpriseUsers = data.enterprise_users || [];
+      this.sharedDiagrams = data.shared_diagrams || [];
+      this.sharedCodebases = data.shared_codebases || [];
+      this.dataLoaded = true;
     });
   }
 
-  addEmployee(email: string, name: string, permissions: EmployeePermissions): Promise<Employee> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newEmployee: Employee = {
-          id: `emp_${Date.now()}`,
-          email,
-          name,
-          role: 'enterprise_employee',
-          employerId: this.authService.getCurrentUser()?.email || '',
-          permissions,
-          createdAt: new Date(),
-          lastActive: new Date()
-        };
-
-        const employees = this.employeesSubject.value;
-        this.employeesSubject.next([...employees, newEmployee]);
-        resolve(newEmployee);
-      }, 500);
-    });
+  // Check if current user is an enterprise user
+  isEnterpriseUser(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user ? ['enterprise_employer', 'enterprise_employee'].includes(user.role) : false;
   }
 
-  removeEmployee(employeeId: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const employees = this.employeesSubject.value;
-        const filteredEmployees = employees.filter(emp => emp.id !== employeeId);
-        this.employeesSubject.next(filteredEmployees);
-        resolve(true);
-      }, 500);
-    });
+  // Check if current user is an enterprise employer
+  isEnterpriseEmployer(): boolean {
+    const user = this.authService.getCurrentUser();
+    return user ? user.role === 'enterprise_employer' : false;
   }
 
-  shareDiagram(diagramId: string, employeeIds: string[]): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const diagrams = this.sharedDiagramsSubject.value;
-        const diagramIndex = diagrams.findIndex(diag => diag.id === diagramId);
-        
-        if (diagramIndex !== -1) {
-          diagrams[diagramIndex] = {
-            ...diagrams[diagramIndex],
-            sharedWith: employeeIds
-          };
-          this.sharedDiagramsSubject.next([...diagrams]);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 500);
-    });
-  }
-
-  shareCodebase(codebaseId: string, employeeIds: string[]): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const codebases = this.sharedCodebasesSubject.value;
-        const codebaseIndex = codebases.findIndex(code => code.id === codebaseId);
-        
-        if (codebaseIndex !== -1) {
-          codebases[codebaseIndex] = {
-            ...codebases[codebaseIndex],
-            sharedWith: employeeIds
-          };
-          this.sharedCodebasesSubject.next([...codebases]);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 500);
-    });
-  }
-
-  // Employee methods
-  getEmployeePermissions(): EmployeePermissions | null {
-    const currentUser = this.authService.getCurrentUser();
-    if (currentUser?.role === 'enterprise_employee') {
-      const employees = this.employeesSubject.value;
-      const employee = employees.find(emp => emp.email === currentUser.email);
-      return employee?.permissions || null;
-    }
-    return null;
-  }
-
-  getSharedDiagrams(): Observable<SharedDiagram[]> {
-    return this.sharedDiagrams$;
-  }
-
-  getSharedCodebases(): Observable<SharedCodebase[]> {
-    return this.sharedCodebases$;
-  }
-
-  canAccessFeature(feature: keyof EmployeePermissions): boolean {
-    const permissions = this.getEmployeePermissions();
-    return permissions ? permissions[feature] : false;
-  }
-
-  // Utility methods
-  isEmployer(): boolean {
-    return this.authService.getCurrentUser()?.role === 'enterprise_employer';
-  }
-
+  // Check if current user is an enterprise employee
   isEmployee(): boolean {
-    return this.authService.getCurrentUser()?.role === 'enterprise_employee';
+    const user = this.authService.getCurrentUser();
+    return user ? user.role === 'enterprise_employee' : false;
   }
 
-  getCurrentOrganization(): EnterpriseOrganization | null {
-    return this.currentOrganizationSubject.value;
+  // Get current user's company
+  getCurrentUserCompany(): Company | null {
+    const user = this.authService.getCurrentUser() as EnterpriseUser;
+    if (!user || !user.company_id) return null;
+    return this.companies.find(c => c.id === user.company_id) || null;
+  }
+
+  // Get all employees in current user's company
+  getCompanyEmployees(): EnterpriseUser[] {
+    const company = this.getCurrentUserCompany();
+    if (!company) return [];
+    return this.enterpriseUsers.filter(u => u.company_id === company.id);
+  }
+
+  // Check if user can access a specific feature
+  canAccessFeature(feature: string): boolean {
+    const user = this.authService.getCurrentUser() as EnterpriseUser;
+    if (!user || !user.permissions) return false;
+    return user.permissions[feature as keyof typeof user.permissions] || false;
+  }
+
+  // Get shared diagrams for current user's company
+  getSharedDiagrams(): SharedDiagram[] {
+    const company = this.getCurrentUserCompany();
+    if (!company) return [];
+    return this.sharedDiagrams.filter(d => d.company_id === company.id);
+  }
+
+  // Get shared codebases for current user's company
+  getSharedCodebases(): SharedCodebase[] {
+    const company = this.getCurrentUserCompany();
+    if (!company) return [];
+    return this.sharedCodebases.filter(c => c.company_id === company.id);
+  }
+
+  // Get user's accessible diagrams (based on permissions and sharing)
+  getUserAccessibleDiagrams(): SharedDiagram[] {
+    const user = this.authService.getCurrentUser() as EnterpriseUser;
+    if (!user || !this.canAccessFeature('canViewDiagrams')) return [];
+    
+    const companyDiagrams = this.getSharedDiagrams();
+    if (this.isEnterpriseEmployer()) {
+      return companyDiagrams; // Employers can see all company diagrams
+    } else {
+      // Employees can only see diagrams shared with them
+      return companyDiagrams.filter(d => 
+        d.shared_with.includes(user.id) || d.created_by === user.id
+      );
+    }
+  }
+
+  // Get user's accessible codebases (based on permissions and sharing)
+  getUserAccessibleCodebases(): SharedCodebase[] {
+    const user = this.authService.getCurrentUser() as EnterpriseUser;
+    if (!user || !this.canAccessFeature('canViewCodebases')) return [];
+    
+    const companyCodebases = this.getSharedCodebases();
+    if (this.isEnterpriseEmployer()) {
+      return companyCodebases; // Employers can see all company codebases
+    } else {
+      // Employees can only see codebases shared with them
+      return companyCodebases.filter(c => 
+        c.shared_with.includes(user.id) || c.uploaded_by === user.id
+      );
+    }
+  }
+
+  // Check if user can upload codebases
+  canUploadCodebases(): boolean {
+    return this.canAccessFeature('canUploadCodebases');
+  }
+
+  // Check if user can generate diagrams
+  canGenerateDiagrams(): boolean {
+    return this.canAccessFeature('canGenerateDiagrams');
+  }
+
+  // Check if user can view security features
+  canViewSecurity(): boolean {
+    return this.canAccessFeature('canViewSecurity');
+  }
+
+  // Check if user can view DevOps features
+  canViewDevOps(): boolean {
+    return this.canAccessFeature('canViewDevOps');
+  }
+
+  // Check if user can view query engine
+  canViewQueryEngine(): boolean {
+    return this.canAccessFeature('canViewQueryEngine');
+  }
+
+  // Check if user can manage team
+  canManageTeam(): boolean {
+    return this.canAccessFeature('canManageTeam');
+  }
+
+  // Get all companies (for demo purposes)
+  getAllCompanies(): Company[] {
+    return this.companies;
+  }
+
+  // Get all enterprise users (for demo purposes)
+  getAllEnterpriseUsers(): EnterpriseUser[] {
+    return this.enterpriseUsers;
   }
 } 
