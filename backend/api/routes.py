@@ -1,3 +1,4 @@
+import httpx
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -80,3 +81,23 @@ def security_scan(req: ScanRequest):
 def billing_subscribe(req: SubscribeRequest):
     # Dummy response
     return {"user_id": req.user_id, "plan": req.plan, "status": "Subscribed"}
+
+
+class MermaidRequest(BaseModel):
+    code: str  # Mermaid diagram code
+
+@router.post("/mermaid/render")
+async def render_mermaid(req: MermaidRequest):
+    """
+    Sends Mermaid code to the Mermaid Live Editor API and returns the rendered SVG.
+    """
+    # Mermaid Live Editor API endpoint for rendering SVG
+    api_url = "https://mermaid.ink/svg"
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(api_url, content=req.code.encode("utf-8"))
+            if response.status_code != 200:
+                raise HTTPException(status_code=502, detail="Mermaid API error")
+            return {"svg": response.text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
