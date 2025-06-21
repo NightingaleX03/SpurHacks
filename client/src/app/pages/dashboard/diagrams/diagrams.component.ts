@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { ThemeService } from '../../../services/theme.service';
 import { AuthService, User } from '../../../services/auth.service';
 import { EnterpriseService, DiagramResource, EnterpriseUser } from '../../../services/enterprise.service';
+import { UserDiagramService, UserDiagram } from '../../../services/user-diagram.service';
 import { SafeHtmlPipe } from '../../../pipes/safe-html.pipe';
 
 declare var mermaid: any;
@@ -183,10 +184,10 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   isLoading = false;
   errorMessage: string | null = null;
 
-  allDiagrams: DiagramResource[] = [];
-  filteredDiagrams: DiagramResource[] = [];
+  allDiagrams: (DiagramResource | UserDiagram)[] = [];
+  filteredDiagrams: (DiagramResource | UserDiagram)[] = [];
   searchTerm = '';
-  selectedDiagram: Partial<DiagramResource> = {};
+  selectedDiagram: Partial<DiagramResource | UserDiagram> = {};
 
   currentUser: EnterpriseUser | User | null = null;
   canGenerateDiagrams = false;
@@ -203,7 +204,8 @@ export class DiagramsComponent implements OnInit, OnDestroy {
     private themeService: ThemeService,
     private cdr: ChangeDetectorRef,
     private authService: AuthService,
-    private enterpriseService: EnterpriseService
+    private enterpriseService: EnterpriseService,
+    private userDiagramService: UserDiagramService
   ) {}
 
   ngOnInit(): void {
@@ -234,7 +236,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   }
 
   loadDiagrams() {
-    if (this.currentUser && 'company_id' in this.currentUser && this.canViewDiagrams) {
+    if (this.currentUser && 'company_id' in this.currentUser) {
       if (this.enterpriseService.isEnterpriseEmployer()) {
         this.allDiagrams = this.enterpriseService.getCompanyDiagrams();
       } else {
@@ -242,10 +244,13 @@ export class DiagramsComponent implements OnInit, OnDestroy {
           (d: DiagramResource) => d.permissions.canView.includes(this.currentUser!.id)
         );
       }
+      this.filterDiagrams();
     } else {
-      this.allDiagrams = []; // Or fetch from local storage for regular users
+      this.userDiagramService.getUserDiagrams().subscribe(diagrams => {
+        this.allDiagrams = diagrams;
+        this.filterDiagrams();
+      });
     }
-    this.filterDiagrams();
   }
 
   filterDiagrams() {
@@ -258,17 +263,24 @@ export class DiagramsComponent implements OnInit, OnDestroy {
     }
   }
 
+  isDiagramResource(diagram: any): diagram is DiagramResource {
+    return 'permissions' in diagram;
+  }
+
   loadCompanyEmployees() {
     this.companyEmployees = this.enterpriseService.getCompanyEmployees()
       .filter(emp => emp.id !== this.currentUser?.id);
   }
 
   isSharedWith(employeeId: string): boolean {
-    return this.selectedDiagram.permissions?.canView.includes(employeeId) ?? false;
+    if (this.isDiagramResource(this.selectedDiagram)) {
+      return this.selectedDiagram.permissions?.canView.includes(employeeId) ?? false;
+    }
+    return false;
   }
 
   toggleShare(employeeId: string, event: Event) {
-    if (!this.selectedDiagram || !this.selectedDiagram.id || !this.selectedDiagram.permissions) return;
+    if (!this.isDiagramResource(this.selectedDiagram) || !this.selectedDiagram.id || !this.selectedDiagram.permissions) return;
 
     const checked = (event.target as HTMLInputElement).checked;
     const currentPermissions = { ...this.selectedDiagram.permissions };
@@ -314,7 +326,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
     this.resetGenerator();
   }
 
-  viewDiagram(diagram: DiagramResource) {
+  viewDiagram(diagram: DiagramResource | UserDiagram) {
     this.selectedDiagram = diagram;
     this.mermaidCode = diagram.mermaid_code || 'graph TD;\\n    A[Start] --> B{Is it?};\\n    B -->|Yes| C[OK];\\n    C --> D[End];\\n    B -->|No| E[Don\'t!];\\n    E --> D;'; // Provide a default diagram
     this.renderMermaid();
@@ -356,26 +368,53 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   }
   
   saveDiagram(mermaidCode: string, prompt: string) {
-    const newDiagram: DiagramResource = {
-      id: `diag_${Date.now()}`,
-      name: prompt.substring(0, 30) + '...',
-      description: `Generated from prompt: "${prompt}"`,
-      type: this.selectedDiagramType!,
-      company_id: (this.currentUser as EnterpriseUser).company_id,
-      created_by: this.currentUser!.id,
-      created_at: new Date().toISOString(),
-      last_modified: new Date().toISOString(),
-      access_level: 'shared',
-      shared_with: [this.currentUser!.id],
-      mermaid_code: mermaidCode,
-      permissions: { 
-        canView: [this.currentUser!.id],
-        canEdit: [this.currentUser!.id],
-        canShare: []
+    if (this.currentUser && 'company_id' in this.currentUser) {
+      const companyId = (this.currentUser as EnterpriseUser).company_id;
+      
+      const canView = [this.currentUser!.id];
+      const canEdit = [this.currentUser!.id];
+      const canShare: string[] = [];
+
+      if (this.isEmployee) {
+        const employer = this.enterpriseService.getCompanyEmployer(companyId);
+        if (employer) {
+          canView.push(employer.id);
+          canEdit.push(employer.id);
+          canShare.push(employer.id);
+        }
       }
-    };
-    this.enterpriseService.addDiagram(newDiagram);
-    this.selectedDiagram = newDiagram;
+
+      const newDiagram: DiagramResource = {
+        id: `diag_${Date.now()}`,
+        name: prompt.substring(0, 30) + '...',
+        description: `Generated from prompt: "${prompt}"`,
+        type: this.selectedDiagramType!,
+        company_id: companyId,
+        created_by: this.currentUser!.id,
+        created_at: new Date().toISOString(),
+        last_modified: new Date().toISOString(),
+        access_level: 'shared',
+        shared_with: canView,
+        mermaid_code: mermaidCode,
+        permissions: { 
+          canView: canView,
+          canEdit: canEdit,
+          canShare: canShare
+        }
+      };
+      this.enterpriseService.addDiagram(newDiagram);
+      this.selectedDiagram = newDiagram;
+    } else {
+      const newDiagram: UserDiagram = {
+        id: `diag_${Date.now()}`,
+        name: prompt.substring(0, 30) + '...',
+        description: `Generated from prompt: "${prompt}"`,
+        type: this.selectedDiagramType!,
+        mermaid_code: mermaidCode
+      };
+      this.userDiagramService.addDiagram(newDiagram);
+      this.selectedDiagram = newDiagram;
+    }
   }
 
   resetGenerator() {
