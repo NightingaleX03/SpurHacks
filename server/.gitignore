@@ -1,0 +1,41 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment variables and credentials
+.env
+
+# Python virtual environments
+venv/
+.env/
+env/
+.venv/
+
+# VS Code settings (optional)
+.vscode/
+
+# Mac system files
+.DS_Store
+
+# Logs and debug files
+*.log
+
+# Output and cache
+*.sqlite3
+*.db
+*.bak
+.cache/
+*.egg-info/
+dist/
+build/
+
+# Jupyter notebooks (if you use them)
+.ipynb_checkpoints/
+
+# Pytest cache
+.pytest_cache/
+
+# Mermaid-generated files (if exporting diagrams)
+*.svg
+*.png
