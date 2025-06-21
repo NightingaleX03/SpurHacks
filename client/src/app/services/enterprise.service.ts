@@ -41,11 +41,13 @@ export interface DiagramResource {
   name: string;
   type: string;
   description: string;
+  company_id: string;
   created_by: string;
   created_at: string;
   last_modified: string;
   access_level: string;
   shared_with: string[];
+  mermaid_code: string;
   permissions: ResourcePermissions;
 }
 
@@ -251,11 +253,22 @@ export class EnterpriseService {
 
   // Update codebase permissions
   updateCodebasePermissions(codebaseId: string, permissions: ResourcePermissions) {
-    const company = this.getCurrentUserCompany();
-    if (!company) return;
-    const codebase = (this.codebases[company.id] || []).find(c => c.id === codebaseId);
-    if (codebase) {
-      codebase.permissions = permissions;
+    const companyId = this.authService.getCurrentUser()?.['company_id'];
+    if (companyId && this.codebases[companyId]) {
+      const codebase = this.codebases[companyId].find(c => c.id === codebaseId);
+      if (codebase) {
+        codebase.permissions = permissions;
+      }
+    }
+  }
+
+  addDiagram(diagram: DiagramResource) {
+    const companyId = this.authService.getCurrentUser()?.['company_id'];
+    if (companyId) {
+      if (!this.diagrams[companyId]) {
+        this.diagrams[companyId] = [];
+      }
+      this.diagrams[companyId].push(diagram);
     }
   }
 } 

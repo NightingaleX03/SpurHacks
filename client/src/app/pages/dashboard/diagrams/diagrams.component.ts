@@ -1,243 +1,338 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { gsap } from 'gsap';
+import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Subscription } from 'rxjs';
+import { ThemeService } from '../../../services/theme.service';
+import { AuthService, User } from '../../../services/auth.service';
+import { EnterpriseService, DiagramResource, EnterpriseUser } from '../../../services/enterprise.service';
+import { SafeHtmlPipe } from '../../../pipes/safe-html.pipe';
+
+declare var mermaid: any;
 
 @Component({
   selector: 'app-diagrams',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, SafeHtmlPipe],
   template: `
-    <div class="flex flex-col">
-      <!-- Initial View: Prompt and Selection -->
-      <ng-container *ngIf="!isLoading && !diagramGenerated">
-        <h2 class="text-2xl font-bold text-white mb-4">Architecture Diagrams</h2>
-        <p class="text-gray-400 mb-6">
-          Enter a prompt describing the system or process you want to visualize, then select a diagram type below to generate it.
-        </p>
+    <div class="container mx-auto p-4 md:p-8">
+      <!-- List View -->
+      <ng-container *ngIf="viewMode === 'list'">
+        <div class="flex justify-between items-center mb-8">
+          <h1 class="text-4xl font-bold text-white">Your Diagrams</h1>
+          <button (click)="showCreateView()" [disabled]="!canGenerateDiagrams" class="generate-button">
+            Create New Diagram
+          </button>
+        </div>
+        <div class="mb-6">
+          <input
+            type="text"
+            placeholder="Search diagrams by title..."
+            class="w-full p-3 rounded-lg bg-dark-surface/50 text-white border border-neon-purple/50 focus:border-neon-purple focus:ring-neon-purple"
+            [(ngModel)]="searchTerm"
+            (input)="filterDiagrams()"
+          />
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let diagram of filteredDiagrams" class="glass p-4 rounded-lg flex flex-col justify-between">
+            <div>
+              <h3 class="text-xl font-semibold text-white mb-2">{{ diagram.name }}</h3>
+              <p class="text-gray-400 text-sm mb-4">{{ diagram.description }}</p>
+            </div>
+            <button (click)="viewDiagram(diagram)" class="action-button self-end">View Diagram</button>
+          </div>
+          <div *ngIf="filteredDiagrams.length === 0" class="text-center col-span-full py-8">
+            <p class="text-gray-400">No diagrams found.</p>
+          </div>
+        </div>
+      </ng-container>
 
-        <div class="flex flex-col gap-6">
-          <textarea 
-            class="w-full p-4 bg-dark-surface/50 border-2 border-neon-purple/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-highlight focus:ring-1 focus:ring-highlight transition-all duration-300" 
-            placeholder="e.g., 'Design a login system with a front-end client, a back-end authentication service, and a user database.'"
-            rows="5"
-          ></textarea>
-
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            <div *ngFor="let diagram of diagramTypes" class="tooltip-container">
-              <button 
-                (click)="selectDiagram(diagram.name)"
-                [class.selected]="selectedDiagram === diagram.name"
-                class="diagram-button w-full h-full"
+      <!-- Create/Preview View -->
+      <ng-container *ngIf="viewMode === 'create'">
+        <div *ngIf="!mermaidCode">
+          <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">Architecture Diagrams</h1>
+            <p class="text-gray-400 max-w-2xl mx-auto">
+              Enter a prompt describing the system or process you want to visualize, then select a diagram type below to generate it.
+            </p>
+          </div>
+          <div class="max-w-4xl mx-auto">
+            <div class="mb-6">
+              <textarea
+                class="w-full h-32 p-4 rounded-lg bg-dark-surface/50 text-white border border-neon-purple/50 focus:border-neon-purple focus:ring-neon-purple transition-all duration-300 placeholder-gray-500"
+                placeholder="e.g., 'Design a login system with a front-end client, a back-end authentication service, and a user database.'"
+                [(ngModel)]="prompt"
+              ></textarea>
+            </div>
+            <div class="mb-6">
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-center">
+                <button
+                  *ngFor="let type of diagramTypes"
+                  (click)="selectDiagramType(type)"
+                  [class.selected]="selectedDiagramType === type"
+                  class="diagram-type-button"
+                >
+                  {{ type }}
+                </button>
+              </div>
+            </div>
+            <div class="text-center">
+              <button
+                (click)="generateDiagram()"
+                [disabled]="!prompt || !selectedDiagramType || isLoading"
+                class="generate-button"
               >
-                {{ diagram.name }}
+                <span *ngIf="!isLoading">Generate Diagram</span>
+                <span *ngIf="isLoading" class="flex items-center justify-center">
+                  <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating...
+                </span>
               </button>
-              <div class="tooltip-text">{{ diagram.definition }}</div>
+              <button (click)="showListView()" class="ml-4 action-button">Cancel</button>
             </div>
           </div>
         </div>
 
-        <div class="mt-6 flex justify-end">
-          <button (click)="onGenerateDiagram()" class="neon-button px-8 py-3 text-lg bg-gradient-to-r from-neon-purple to-electric-blue text-white font-semibold rounded-lg border border-neon-purple hover:border-highlight transition-all duration-300">
-            Generate Diagram
-          </button>
+        <div *ngIf="mermaidCode" class="mt-8">
+          <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-white">{{ selectedDiagram.name || 'Diagram Preview' }}</h1>
+            <button (click)="showListView()" class="action-button">Go back to designs</button>
+          </div>
+          <div class="p-4 bg-gray-900 rounded-lg shadow-lg mb-4">
+            <h3 class="text-xl font-semibold text-white mb-4">Generated Mermaid Code</h3>
+            <pre class="bg-gray-800 p-4 rounded-md overflow-x-auto text-sm"><code class="text-green-300">{{ mermaidCode }}</code></pre>
+            <div class="flex justify-end space-x-2 mt-4">
+              <button (click)="copyToClipboard()" class="action-button">Copy</button>
+              <button (click)="downloadDiagram('png')" class="action-button">Download PNG</button>
+              <button (click)="downloadDiagram('svg')" class="action-button">Download SVG</button>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-lg shadow-lg" id="mermaid-container">
+            <div [innerHTML]="svg | safeHtml"></div>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="mt-8 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-300">
+          <h3 class="font-bold">Error</h3>
+          <p>{{ errorMessage }}</p>
         </div>
       </ng-container>
-
-      <!-- Loading View -->
-      <div *ngIf="isLoading" class="flex flex-col items-center justify-center min-h-[400px]">
-        <div class="loader"></div>
-        <p class="text-white mt-6 text-lg animate-pulse">
-          Generating your <span class="font-semibold text-neon-purple">{{ selectedDiagram }}</span>...
-        </p>
-        <p class="text-gray-400 mt-2">This may take a few moments.</p>
-      </div>
-
-      <!-- Generated Diagram View -->
-      <div *ngIf="diagramGenerated && !isLoading" class="generated-diagram">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-white">Generated Diagram: <span class="text-neon-purple">{{ selectedDiagram }}</span></h2>
-            <button (click)="reset()" class="neon-button px-6 py-2 text-base bg-gradient-to-r from-electric-blue to-highlight text-white font-semibold rounded-lg border border-electric-blue hover:border-highlight transition-all duration-300">
-                Generate New Diagram
-            </button>
-        </div>
-        <div class="glass p-8 rounded-xl min-h-[400px] flex items-center justify-center border-2 border-neon-purple/30">
-            <p class="text-gray-500 italic">Diagram placeholder for {{ selectedDiagram }}</p>
-        </div>
-      </div>
     </div>
   `,
   styles: [`
-    .tooltip-container {
-      position: relative;
-    }
-
-    .diagram-button {
-      @apply p-4 bg-dark-surface/50 border border-neon-purple/50 rounded-lg text-gray-400 font-medium transition-all duration-300;
-      @apply hover:border-neon-purple hover:text-neon-purple;
-    }
-    
-    .diagram-button.selected {
-      @apply border-highlight text-highlight bg-neon-purple/20;
-    }
-
-    .tooltip-text {
-      visibility: hidden;
-      width: 280px;
-      background-color: var(--dark-surface);
-      color: var(--dark-text);
-      text-align: left;
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-      border-radius: 0.5rem;
-      padding: 12px;
-      position: absolute;
-      z-index: 10;
-      bottom: 110%;
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-      pointer-events: none;
-      border: 1px solid var(--neon-purple);
-      box-shadow: 0 4px 20px rgba(142, 45, 226, 0.2);
-    }
-    
-    .tooltip-text::after {
-      content: "";
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      margin-left: -5px;
-      border-width: 5px;
-      border-style: solid;
-      border-color: var(--neon-purple) transparent transparent transparent;
-    }
-
-    .tooltip-container:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
-    }
-    
-    .loader {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        position: relative;
-        animation: rotate 1.2s linear infinite;
-    }
-    .loader::before, .loader::after {
-        content: "";
-        box-sizing: border-box;
-        position: absolute;
-        inset: 0px;
-        border-radius: 50%;
-        border: 5px solid var(--dark-surface);
-        animation: prixClipFix 2.4s linear infinite;
-    }
-    .loader::after {
-        border-color: var(--neon-purple);
-        animation: prixClipFix 2.4s linear infinite , rotate 0.6s linear infinite reverse;
-        inset: 6px;
-    }
-
-    @keyframes rotate {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    @keyframes prixClipFix {
-        0%   { clip-path: polygon(50% 50%,0 0,0 0,0 0,0 0,0 0) }
-        25%  { clip-path: polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0) }
-        50%  { clip-path: polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%) }
-        75%  { clip-path: polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%) }
-        100% { clip-path: polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0) }
-    }
-  `]
+    .diagram-type-button { @apply px-4 py-2 rounded-lg bg-dark-surface/50 text-white border border-neon-purple/30 hover:bg-neon-purple/30 transition-all duration-200; }
+    .diagram-type-button.selected { @apply bg-neon-purple text-white border-neon-purple; box-shadow: 0 0 8px theme('colors.neon-purple'); }
+    .generate-button { @apply px-8 py-3 rounded-lg bg-gradient-to-r from-neon-purple to-electric-blue text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300; }
+    .action-button { @apply px-4 py-2 rounded-md bg-gray-700 text-white hover:bg-gray-600 transition-colors; }
+  `],
 })
-export class DiagramsComponent {
+export class DiagramsComponent implements OnInit, OnDestroy {
+  viewMode: 'list' | 'create' = 'list';
+  prompt = '';
+  diagramTypes = ['Class Diagram', 'Object Diagram', 'Component Diagram', 'Deployment Diagram', 'Package Diagram', 'State Machine Diagram', 'Activity Diagram', 'Use Case Diagram', 'Sequence Diagram', 'Communication Diagram', 'Interaction Overview', 'UML'];
+  selectedDiagramType: string | null = null;
+  mermaidCode = '';
+  svg: any;
   isLoading = false;
-  diagramGenerated = false;
-  selectedDiagram: string | null = null;
+  errorMessage: string | null = null;
 
-  diagramTypes = [
-    {
-      name: 'Class Diagram',
-      definition: 'Depicts the static structure of a system by showing its classes, attributes, methods, and the relationships between them. It is the building block of all object-oriented software systems.'
-    },
-    {
-      name: 'Object Diagram',
-      definition: 'Shows a snapshot of the instances of classes and their relationships at a specific point in time, illustrating real-world examples of the system\'s state.'
-    },
-    {
-      name: 'Component Diagram',
-      definition: 'Represents how the physical components in a system have been organized and shows the structural relationship between software system elements.'
-    },
-    {
-      name: 'Deployment Diagram',
-      definition: 'Represents the system hardware and its software. It details what hardware components exist and what software components run on them.'
-    },
-    {
-      name: 'Package Diagram',
-      definition: 'Depicts how packages and their elements are organized and shows the dependencies between different packages.'
-    },
-    {
-      name: 'State Machine Diagram',
-      definition: 'Represents the condition of the system or part of the system at finite instances of time, modeling the dynamic behavior of a class in response to time and changing external stimuli.'
-    },
-    {
-      name: 'Activity Diagram',
-      definition: 'Illustrates the flow of control in a system, visually depicting workflows of sequential and concurrent activities and the sequence in which they happen.'
-    },
-    {
-      name: 'Use Case Diagram',
-      definition: 'Depicts the functionality of a system by showing how external agents (users) interact with system functionalities, illustrating the system\'s functional requirements.'
-    },
-    {
-      name: 'Sequence Diagram',
-      definition: 'Shows object interactions arranged in a time sequence, depicting the objects and classes involved and the sequence of messages exchanged between them.'
-    },
-    {
-      name: 'Communication Diagram',
-      definition: 'Models the interactions between objects in terms of sequenced messages, describing both the static structure and dynamic behavior of a system.'
-    },
-    {
-      name: 'Interaction Overview',
-      definition: 'Provides a high-level view of the interactions within a system, similar to an Activity Diagram where the nodes themselves can be interaction diagrams.'
-    },
-    {
-      name: 'UML',
-      definition: 'The Unified Modeling Language (UML) is a standardized, general-purpose modeling language used to visualize, specify, construct, and document the artifacts of a software system.'
-    }
-  ];
+  allDiagrams: DiagramResource[] = [];
+  filteredDiagrams: DiagramResource[] = [];
+  searchTerm = '';
+  selectedDiagram: Partial<DiagramResource> = {};
 
-  selectDiagram(diagramName: string) {
-    this.selectedDiagram = diagramName;
+  currentUser: EnterpriseUser | User | null = null;
+  canGenerateDiagrams = false;
+  canViewDiagrams = false;
+
+  private themeSubscription!: Subscription;
+
+  constructor(
+    private http: HttpClient,
+    private themeService: ThemeService,
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private enterpriseService: EnterpriseService
+  ) {}
+
+  ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
+    this.setPermissions();
+    this.loadDiagrams();
+
+    mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'});
+    this.themeSubscription = this.themeService.theme$.subscribe((theme: 'light' | 'dark') => {
+      mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'});
+      if (this.mermaidCode) this.renderMermaid();
+    });
   }
 
-  onGenerateDiagram() {
-    if (!this.selectedDiagram) {
-      // In a real app, you might show an error message here.
-      return; 
+  ngOnDestroy(): void {
+    if (this.themeSubscription) this.themeSubscription.unsubscribe();
+  }
+
+  setPermissions() {
+    if (this.currentUser && 'permissions' in this.currentUser) {
+      this.canViewDiagrams = this.currentUser.permissions.canViewDiagrams;
+      this.canGenerateDiagrams = this.currentUser.permissions.canGenerateDiagrams;
+    } else { // regular user
+      this.canViewDiagrams = true;
+      this.canGenerateDiagrams = true;
+    }
+  }
+
+  loadDiagrams() {
+    if (this.currentUser && 'company_id' in this.currentUser && this.canViewDiagrams) {
+      this.allDiagrams = this.enterpriseService.getCompanyDiagrams().filter(
+        (d: DiagramResource) => d.permissions.canView.includes(this.currentUser!.id)
+      );
+    } else {
+      this.allDiagrams = []; // Or fetch from local storage for regular users
+    }
+    this.filterDiagrams();
+  }
+
+  filterDiagrams() {
+    if (!this.searchTerm) {
+      this.filteredDiagrams = this.allDiagrams;
+    } else {
+      this.filteredDiagrams = this.allDiagrams.filter(d =>
+        d.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    }
+  }
+
+  showListView() {
+    this.viewMode = 'list';
+    this.resetGenerator();
+    this.loadDiagrams();
+  }
+
+  showCreateView() {
+    if (!this.canGenerateDiagrams) return;
+    this.viewMode = 'create';
+    this.resetGenerator();
+  }
+
+  viewDiagram(diagram: DiagramResource) {
+    this.selectedDiagram = diagram;
+    this.mermaidCode = diagram.mermaid_code;
+    this.renderMermaid();
+    this.viewMode = 'create';
+  }
+
+  selectDiagramType(type: string) {
+    this.selectedDiagramType = type;
+  }
+
+  generateDiagram() {
+    if (!this.prompt || !this.selectedDiagramType) {
+      this.errorMessage = 'Please enter a prompt and select a diagram type.';
+      return;
     }
     this.isLoading = true;
-    this.diagramGenerated = false;
+    this.mermaidCode = '';
+    this.errorMessage = null;
 
-    setTimeout(() => {
-      this.isLoading = false;
-      this.diagramGenerated = true;
-      
-      gsap.from('.generated-diagram', {
-        duration: 0.8,
-        scale: 0.95,
-        opacity: 0,
-        ease: 'power3.out',
+    this.http.post<any>('http://localhost:8000/api/diagrams', { prompt: this.prompt, diagram_type: this.selectedDiagramType })
+      .subscribe({
+        next: (data) => {
+          this.mermaidCode = data.mermaid_code;
+          this.renderMermaid();
+          this.isLoading = false;
+          this.saveDiagram(this.mermaidCode, this.prompt);
+        },
+        error: (error) => {
+          console.error('Error generating diagram:', error);
+          this.errorMessage = 'An error occurred while generating the diagram. Please try again.';
+          this.isLoading = false;
+        },
       });
-    }, 3000);
+  }
+  
+  saveDiagram(mermaidCode: string, prompt: string) {
+    const newDiagram: DiagramResource = {
+      id: `diag_${Date.now()}`,
+      name: prompt.substring(0, 30) + '...',
+      description: `Generated from prompt: "${prompt}"`,
+      type: this.selectedDiagramType!,
+      company_id: (this.currentUser as EnterpriseUser).company_id,
+      created_by: this.currentUser!.id,
+      created_at: new Date().toISOString(),
+      last_modified: new Date().toISOString(),
+      access_level: 'shared',
+      shared_with: [this.currentUser!.id],
+      mermaid_code: mermaidCode,
+      permissions: { 
+        canView: [this.currentUser!.id],
+        canEdit: [this.currentUser!.id],
+        canShare: []
+      }
+    };
+    this.enterpriseService.addDiagram(newDiagram);
+    this.selectedDiagram = newDiagram;
   }
 
-  reset() {
-    this.isLoading = false;
-    this.diagramGenerated = false;
-    this.selectedDiagram = null;
+  resetGenerator() {
+    this.prompt = '';
+    this.selectedDiagramType = null;
+    this.mermaidCode = '';
+    this.svg = null;
+    this.errorMessage = null;
+    this.selectedDiagram = {};
   }
-} 
+
+  renderMermaid() {
+    if (this.mermaidCode) {
+      try {
+        mermaid.render('mermaid-preview', this.mermaidCode, (svgCode: string) => {
+          this.svg = svgCode;
+          this.cdr.detectChanges();
+        });
+      } catch (e) {
+        console.error('Mermaid rendering error:', e);
+        this.errorMessage = 'There was an error rendering the diagram. The generated code might be invalid.';
+      }
+    }
+  }
+
+  copyToClipboard() {
+    navigator.clipboard.writeText(this.mermaidCode);
+  }
+
+  downloadDiagram(format: 'png' | 'svg') {
+    if (format === 'svg') {
+      const blob = new Blob([this.svg], { type: 'image/svg+xml' });
+      this.downloadBlob(blob, `${this.selectedDiagram.name || 'diagram'}.svg`);
+    } else if (format === 'png') {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      if (context) {
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          context.drawImage(img, 0, 0);
+          canvas.toBlob((blob) => {
+            if (blob) this.downloadBlob(blob, `${this.selectedDiagram.name || 'diagram'}.png`);
+          });
+        };
+        img.src = 'data:image/svg+xml;base64,' + btoa(this.svg);
+      }
+    }
+  }
+
+  private downloadBlob(blob: Blob, filename: string) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
+}

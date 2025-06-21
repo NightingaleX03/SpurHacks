@@ -28,9 +28,9 @@ type PermissionKey = keyof EnterpriseUser['permissions'];
             </thead>
             <tbody>
               <tr *ngFor="let emp of employees" class="border-b border-gray-800/50">
-                <td class="py-2">{{ emp.name }}</td>
-                <td class="py-2 text-xs">{{ emp.email }}</td>
-                <td class="py-2">{{ emp.role === 'enterprise_employer' ? 'Employer' : 'Employee' }}</td>
+                <td class="py-2 text-white">{{ emp.name }}</td>
+                <td class="py-2 text-xs text-white">{{ emp.email }}</td>
+                <td class="py-2 text-white">{{ emp.role === 'enterprise_employer' ? 'Employer' : 'Employee' }}</td>
                 <td class="py-2">
                   <div class="flex flex-wrap gap-1">
                     <label *ngFor="let perm of permissionKeys">
