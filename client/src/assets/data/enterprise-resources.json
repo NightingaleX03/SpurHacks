@@ -1,0 +1,294 @@
+{
+  "company_diagrams": {
+    "comp_1": [
+      {
+        "id": "diag_comp1_1",
+        "name": "TechCorp User Authentication System",
+        "type": "Sequence Diagram",
+        "description": "Complete authentication flow including OAuth2, JWT tokens, and password reset",
+        "created_by": "emp_1",
+        "created_at": "2024-01-15T10:30:00Z",
+        "last_modified": "2024-01-28T14:15:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_2", "emp_3"],
+        "permissions": {
+          "canView": ["emp_1", "emp_2", "emp_3"],
+          "canEdit": ["emp_1"],
+          "canShare": ["emp_1"]
+        }
+      },
+      {
+        "id": "diag_comp1_2",
+        "name": "TechCorp Microservices Architecture",
+        "type": "Component Diagram",
+        "description": "High-level architecture showing service communication and data flow",
+        "created_by": "emp_1",
+        "created_at": "2024-01-10T09:45:00Z",
+        "last_modified": "2024-01-25T16:20:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_2"],
+        "permissions": {
+          "canView": ["emp_1", "emp_2"],
+          "canEdit": ["emp_1"],
+          "canShare": ["emp_1"]
+        }
+      },
+      {
+        "id": "diag_comp1_3",
+        "name": "TechCorp Database Schema",
+        "type": "Class Diagram",
+        "description": "Complete database schema with relationships and constraints",
+        "created_by": "emp_2",
+        "created_at": "2024-01-20T11:20:00Z",
+        "last_modified": "2024-01-27T13:45:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_3"],
+        "permissions": {
+          "canView": ["emp_1", "emp_2", "emp_3"],
+          "canEdit": ["emp_1", "emp_2"],
+          "canShare": ["emp_1", "emp_2"]
+        }
+      }
+    ],
+    "comp_2": [
+      {
+        "id": "diag_comp2_1",
+        "name": "InnovateSoft API Gateway Design",
+        "type": "Deployment Diagram",
+        "description": "API gateway deployment with load balancers and security layers",
+        "created_by": "emp_4",
+        "created_at": "2024-01-12T08:30:00Z",
+        "last_modified": "2024-01-26T10:15:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_5"],
+        "permissions": {
+          "canView": ["emp_4", "emp_5"],
+          "canEdit": ["emp_4"],
+          "canShare": ["emp_4"]
+        }
+      },
+      {
+        "id": "diag_comp2_2",
+        "name": "InnovateSoft Frontend Architecture",
+        "type": "Component Diagram",
+        "description": "React-based frontend architecture with state management",
+        "created_by": "emp_5",
+        "created_at": "2024-01-18T15:20:00Z",
+        "last_modified": "2024-01-29T11:30:00Z",
+        "access_level": "restricted",
+        "shared_with": [],
+        "permissions": {
+          "canView": ["emp_4", "emp_5"],
+          "canEdit": ["emp_4", "emp_5"],
+          "canShare": ["emp_4", "emp_5"]
+        }
+      }
+    ],
+    "comp_3": [
+      {
+        "id": "diag_comp3_1",
+        "name": "DataFlow ETL Pipeline",
+        "type": "Activity Diagram",
+        "description": "Data processing pipeline for large-scale analytics",
+        "created_by": "emp_6",
+        "created_at": "2024-01-05T10:30:00Z",
+        "last_modified": "2024-01-25T14:45:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_7"],
+        "permissions": {
+          "canView": ["emp_6", "emp_7"],
+          "canEdit": ["emp_6"],
+          "canShare": ["emp_6"]
+        }
+      },
+      {
+        "id": "diag_comp3_2",
+        "name": "DataFlow Data Warehouse Schema",
+        "type": "Class Diagram",
+        "description": "Star schema design for data warehouse",
+        "created_by": "emp_7",
+        "created_at": "2024-01-08T12:15:00Z",
+        "last_modified": "2024-01-24T09:20:00Z",
+        "access_level": "restricted",
+        "shared_with": [],
+        "permissions": {
+          "canView": ["emp_6", "emp_7"],
+          "canEdit": ["emp_6", "emp_7"],
+          "canShare": ["emp_6", "emp_7"]
+        }
+      }
+    ],
+    "comp_4": [
+      {
+        "id": "diag_comp4_1",
+        "name": "CloudScale Infrastructure as Code",
+        "type": "Deployment Diagram",
+        "description": "Terraform-based cloud infrastructure deployment",
+        "created_by": "emp_8",
+        "created_at": "2024-01-03T12:15:00Z",
+        "last_modified": "2024-01-23T17:20:00Z",
+        "access_level": "restricted",
+        "shared_with": [],
+        "permissions": {
+          "canView": ["emp_8"],
+          "canEdit": ["emp_8"],
+          "canShare": ["emp_8"]
+        }
+      }
+    ],
+    "comp_5": [
+      {
+        "id": "diag_comp5_1",
+        "name": "SecureNet Security Architecture",
+        "type": "Component Diagram",
+        "description": "Multi-layered security architecture with threat detection",
+        "created_by": "emp_9",
+        "created_at": "2024-01-01T09:00:00Z",
+        "last_modified": "2024-01-21T13:30:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_10"],
+        "permissions": {
+          "canView": ["emp_9", "emp_10"],
+          "canEdit": ["emp_9"],
+          "canShare": ["emp_9"]
+        }
+      },
+      {
+        "id": "diag_comp5_2",
+        "name": "SecureNet Incident Response Flow",
+        "type": "Activity Diagram",
+        "description": "Security incident response and escalation procedures",
+        "created_by": "emp_10",
+        "created_at": "2024-01-06T14:45:00Z",
+        "last_modified": "2024-01-22T16:10:00Z",
+        "access_level": "restricted",
+        "shared_with": [],
+        "permissions": {
+          "canView": ["emp_9", "emp_10"],
+          "canEdit": ["emp_9", "emp_10"],
+          "canShare": ["emp_9", "emp_10"]
+        }
+      }
+    ]
+  },
+  "company_codebases": {
+    "comp_1": [
+      {
+        "id": "code_comp1_1",
+        "name": "TechCorp Frontend React App",
+        "description": "Main customer-facing application built with React and TypeScript",
+        "language": "TypeScript",
+        "framework": "React",
+        "size": "2.4 MB",
+        "uploaded_by": "emp_1",
+        "created_at": "2024-01-10T14:20:00Z",
+        "last_modified": "2024-01-28T09:30:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_2", "emp_3"],
+        "permissions": {
+          "canView": ["emp_1", "emp_2", "emp_3"],
+          "canEdit": ["emp_1"],
+          "canShare": ["emp_1"]
+        }
+      },
+      {
+        "id": "code_comp1_2",
+        "name": "TechCorp Backend API",
+        "description": "RESTful API service built with Node.js and Express",
+        "language": "JavaScript",
+        "framework": "Express.js",
+        "size": "1.8 MB",
+        "uploaded_by": "emp_2",
+        "created_at": "2024-01-08T16:45:00Z",
+        "last_modified": "2024-01-27T11:15:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_3"],
+        "permissions": {
+          "canView": ["emp_1", "emp_2", "emp_3"],
+          "canEdit": ["emp_1", "emp_2"],
+          "canShare": ["emp_1", "emp_2"]
+        }
+      }
+    ],
+    "comp_2": [
+      {
+        "id": "code_comp2_1",
+        "name": "InnovateSoft Mobile App",
+        "description": "Cross-platform mobile application using React Native",
+        "language": "JavaScript",
+        "framework": "React Native",
+        "size": "3.1 MB",
+        "uploaded_by": "emp_4",
+        "created_at": "2024-01-05T10:30:00Z",
+        "last_modified": "2024-01-25T14:45:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_5"],
+        "permissions": {
+          "canView": ["emp_4", "emp_5"],
+          "canEdit": ["emp_4"],
+          "canShare": ["emp_4"]
+        }
+      }
+    ],
+    "comp_3": [
+      {
+        "id": "code_comp3_1",
+        "name": "DataFlow Analytics Engine",
+        "description": "Python-based analytics engine for big data processing",
+        "language": "Python",
+        "framework": "Apache Spark",
+        "size": "4.2 MB",
+        "uploaded_by": "emp_6",
+        "created_at": "2024-01-03T12:15:00Z",
+        "last_modified": "2024-01-23T17:20:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_7"],
+        "permissions": {
+          "canView": ["emp_6", "emp_7"],
+          "canEdit": ["emp_6"],
+          "canShare": ["emp_6"]
+        }
+      }
+    ],
+    "comp_4": [
+      {
+        "id": "code_comp4_1",
+        "name": "CloudScale Infrastructure Code",
+        "description": "Terraform configurations for cloud infrastructure",
+        "language": "HCL",
+        "framework": "Terraform",
+        "size": "0.9 MB",
+        "uploaded_by": "emp_8",
+        "created_at": "2024-01-01T09:00:00Z",
+        "last_modified": "2024-01-21T13:30:00Z",
+        "access_level": "restricted",
+        "shared_with": [],
+        "permissions": {
+          "canView": ["emp_8"],
+          "canEdit": ["emp_8"],
+          "canShare": ["emp_8"]
+        }
+      }
+    ],
+    "comp_5": [
+      {
+        "id": "code_comp5_1",
+        "name": "SecureNet Monitoring Tools",
+        "description": "Custom security monitoring and alerting system",
+        "language": "Python",
+        "framework": "Custom",
+        "size": "1.5 MB",
+        "uploaded_by": "emp_9",
+        "created_at": "2024-01-02T11:00:00Z",
+        "last_modified": "2024-01-20T15:30:00Z",
+        "access_level": "restricted",
+        "shared_with": ["emp_10"],
+        "permissions": {
+          "canView": ["emp_9", "emp_10"],
+          "canEdit": ["emp_9"],
+          "canShare": ["emp_9"]
+        }
+      }
+    ]
+  }
+} 

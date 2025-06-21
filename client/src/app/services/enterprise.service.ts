@@ -30,30 +30,38 @@ export interface EnterpriseUser extends User {
   };
 }
 
-export interface SharedDiagram {
+export interface ResourcePermissions {
+  canView: string[];
+  canEdit: string[];
+  canShare: string[];
+}
+
+export interface DiagramResource {
   id: string;
   name: string;
   type: string;
+  description: string;
   created_by: string;
-  company_id: string;
-  shared_with: string[];
   created_at: string;
   last_modified: string;
-  description: string;
+  access_level: string;
+  shared_with: string[];
+  permissions: ResourcePermissions;
 }
 
-export interface SharedCodebase {
+export interface CodebaseResource {
   id: string;
   name: string;
   description: string;
-  uploaded_by: string;
-  company_id: string;
-  shared_with: string[];
-  created_at: string;
-  last_modified: string;
   language: string;
   framework: string;
   size: string;
+  uploaded_by: string;
+  created_at: string;
+  last_modified: string;
+  access_level: string;
+  shared_with: string[];
+  permissions: ResourcePermissions;
 }
 
 @Injectable({
@@ -62,9 +70,10 @@ export interface SharedCodebase {
 export class EnterpriseService {
   private companies: Company[] = [];
   private enterpriseUsers: EnterpriseUser[] = [];
-  private sharedDiagrams: SharedDiagram[] = [];
-  private sharedCodebases: SharedCodebase[] = [];
   private dataLoaded = false;
+
+  private diagrams: { [companyId: string]: DiagramResource[] } = {};
+  private codebases: { [companyId: string]: CodebaseResource[] } = {};
 
   constructor(
     private authService: AuthService,
@@ -79,8 +88,10 @@ export class EnterpriseService {
     this.http.get<any>('assets/data/sample-data.json').subscribe(data => {
       this.companies = data.companies || [];
       this.enterpriseUsers = data.enterprise_users || [];
-      this.sharedDiagrams = data.shared_diagrams || [];
-      this.sharedCodebases = data.shared_codebases || [];
+    });
+    this.http.get<any>('assets/data/enterprise-resources.json').subscribe(data => {
+      this.diagrams = data.company_diagrams || {};
+      this.codebases = data.company_codebases || {};
       this.dataLoaded = true;
     });
   }
@@ -124,26 +135,26 @@ export class EnterpriseService {
     return user.permissions[feature as keyof typeof user.permissions] || false;
   }
 
-  // Get shared diagrams for current user's company
-  getSharedDiagrams(): SharedDiagram[] {
+  // Get company diagrams
+  getCompanyDiagrams(): DiagramResource[] {
     const company = this.getCurrentUserCompany();
     if (!company) return [];
-    return this.sharedDiagrams.filter(d => d.company_id === company.id);
+    return this.diagrams[company.id] || [];
   }
 
-  // Get shared codebases for current user's company
-  getSharedCodebases(): SharedCodebase[] {
+  // Get company codebases
+  getCompanyCodebases(): CodebaseResource[] {
     const company = this.getCurrentUserCompany();
     if (!company) return [];
-    return this.sharedCodebases.filter(c => c.company_id === company.id);
+    return this.codebases[company.id] || [];
   }
 
   // Get user's accessible diagrams (based on permissions and sharing)
-  getUserAccessibleDiagrams(): SharedDiagram[] {
+  getUserAccessibleDiagrams(): DiagramResource[] {
     const user = this.authService.getCurrentUser() as EnterpriseUser;
     if (!user || !this.canAccessFeature('canViewDiagrams')) return [];
     
-    const companyDiagrams = this.getSharedDiagrams();
+    const companyDiagrams = this.getCompanyDiagrams();
     if (this.isEnterpriseEmployer()) {
       return companyDiagrams; // Employers can see all company diagrams
     } else {
@@ -155,11 +166,11 @@ export class EnterpriseService {
   }
 
   // Get user's accessible codebases (based on permissions and sharing)
-  getUserAccessibleCodebases(): SharedCodebase[] {
+  getUserAccessibleCodebases(): CodebaseResource[] {
     const user = this.authService.getCurrentUser() as EnterpriseUser;
     if (!user || !this.canAccessFeature('canViewCodebases')) return [];
     
-    const companyCodebases = this.getSharedCodebases();
+    const companyCodebases = this.getCompanyCodebases();
     if (this.isEnterpriseEmployer()) {
       return companyCodebases; // Employers can see all company codebases
     } else {
@@ -208,5 +219,43 @@ export class EnterpriseService {
   // Get all enterprise users (for demo purposes)
   getAllEnterpriseUsers(): EnterpriseUser[] {
     return this.enterpriseUsers;
+  }
+
+  // Add a new employee
+  addEmployee(employee: EnterpriseUser) {
+    this.enterpriseUsers.push(employee);
+  }
+
+  // Remove an employee
+  removeEmployee(employeeId: string) {
+    this.enterpriseUsers = this.enterpriseUsers.filter(e => e.id !== employeeId);
+  }
+
+  // Update employee permissions
+  updateEmployeePermissions(employeeId: string, permissions: Partial<EnterpriseUser['permissions']>) {
+    const emp = this.enterpriseUsers.find(e => e.id === employeeId);
+    if (emp) {
+      emp.permissions = { ...emp.permissions, ...permissions };
+    }
+  }
+
+  // Update diagram permissions
+  updateDiagramPermissions(diagramId: string, permissions: ResourcePermissions) {
+    const company = this.getCurrentUserCompany();
+    if (!company) return;
+    const diagram = (this.diagrams[company.id] || []).find(d => d.id === diagramId);
+    if (diagram) {
+      diagram.permissions = permissions;
+    }
+  }
+
+  // Update codebase permissions
+  updateCodebasePermissions(codebaseId: string, permissions: ResourcePermissions) {
+    const company = this.getCurrentUserCompany();
+    if (!company) return;
+    const codebase = (this.codebases[company.id] || []).find(c => c.id === codebaseId);
+    if (codebase) {
+      codebase.permissions = permissions;
+    }
   }
 } 
