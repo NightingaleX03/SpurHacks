@@ -235,9 +235,13 @@ export class DiagramsComponent implements OnInit, OnDestroy {
 
   loadDiagrams() {
     if (this.currentUser && 'company_id' in this.currentUser && this.canViewDiagrams) {
-      this.allDiagrams = this.enterpriseService.getCompanyDiagrams().filter(
-        (d: DiagramResource) => d.permissions.canView.includes(this.currentUser!.id)
-      );
+      if (this.enterpriseService.isEnterpriseEmployer()) {
+        this.allDiagrams = this.enterpriseService.getCompanyDiagrams();
+      } else {
+        this.allDiagrams = this.enterpriseService.getCompanyDiagrams().filter(
+          (d: DiagramResource) => d.permissions.canView.includes(this.currentUser!.id)
+        );
+      }
     } else {
       this.allDiagrams = []; // Or fetch from local storage for regular users
     }
