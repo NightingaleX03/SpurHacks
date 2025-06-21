@@ -8,7 +8,7 @@ import { gsap } from 'gsap';
   imports: [CommonModule],
   template: `
     <div>
-      <h2 class="text-2xl font-bold text-white neon-glow mb-6">DevOps Pipeline</h2>
+      <h2 class="text-2xl font-bold text-white mb-6">DevOps Pipeline</h2>
       <div class="glass p-8 rounded-xl mb-6 pipeline">
         <div class="flex items-center justify-between mb-4">
           <span class="text-lg font-semibold text-highlight">CI/CD Pipeline</span>

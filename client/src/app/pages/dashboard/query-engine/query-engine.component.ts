@@ -8,7 +8,7 @@ import { gsap } from 'gsap';
   imports: [CommonModule],
   template: `
     <div>
-      <h2 class="text-2xl font-bold text-white neon-glow mb-6">Query Engine</h2>
+      <h2 class="text-2xl font-bold text-white mb-6">Query Engine</h2>
       <form class="mb-6 flex items-center gap-4">
         <input type="text" class="flex-1 px-4 py-3 bg-dark-surface/50 border border-neon-purple rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-highlight focus:ring-2 focus:ring-highlight/20 transition-all duration-300" placeholder="How does the login system work?" />
         <button type="submit" class="neon-button px-6 py-2 bg-gradient-to-r from-neon-purple to-electric-blue text-white font-medium rounded-lg border border-neon-purple hover:border-highlight transition-all duration-300">Search</button>
