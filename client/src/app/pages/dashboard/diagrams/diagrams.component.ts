@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -145,7 +145,7 @@ declare var mermaid: any;
                     <!-- Chatbot section -->
                     <div class="glass p-4 rounded-lg">
                         <h3 class="text-xl font-semibold text-white mb-4">Chat with Diagram AI</h3>
-                        <div class="h-64 overflow-y-auto bg-dark-surface/50 rounded-lg p-2 mb-4 flex flex-col space-y-2">
+                        <div #chatContainer class="h-64 overflow-y-auto bg-dark-surface/50 rounded-lg p-2 mb-4 flex flex-col space-y-2">
                             <div *ngFor="let msg of chatHistory" class="chat-message" [class.user]="msg.author === 'user'" [class.bot]="msg.author === 'bot'">
                                 <p>{{ msg.message }}</p>
                             </div>
@@ -178,7 +178,7 @@ declare var mermaid: any;
     .chat-message.bot { @apply bg-gray-700 text-white self-start; }
   `],
 })
-export class DiagramsComponent implements OnInit, OnDestroy {
+export class DiagramsComponent implements OnInit, OnDestroy, AfterViewChecked {
   viewMode: 'list' | 'create' = 'list';
   prompt = '';
   diagramTypes = ['Class Diagram', 'Object Diagram', 'Component Diagram', 'Deployment Diagram', 'Package Diagram', 'State Machine Diagram', 'Activity Diagram', 'Use Case Diagram', 'Sequence Diagram', 'Communication Diagram', 'Interaction Overview', 'UML'];
@@ -202,6 +202,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   chatInput = '';
 
   private themeSubscription!: Subscription;
+  @ViewChild('chatContainer') private chatContainer!: ElementRef;
 
   constructor(
     private http: HttpClient,
@@ -231,6 +232,20 @@ export class DiagramsComponent implements OnInit, OnDestroy {
       this.setPermissions();
       this.loadDiagrams();
     });
+  }
+
+  ngAfterViewChecked() {
+    this.scrollToBottom();
+  }
+
+  scrollToBottom(): void {
+    try {
+      if (this.chatContainer) {
+        this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
+      }
+    } catch(err) { 
+        console.error("Could not scroll to bottom:", err);
+    }
   }
 
   ngOnDestroy(): void {
@@ -314,17 +329,40 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   }
 
   sendChatMessage() {
-    if (!this.chatInput.trim()) return;
+    if (!this.chatInput.trim() || !this.mermaidCode) return;
 
-    this.chatHistory.push({ author: 'user', message: this.chatInput });
-    const userMessage = this.chatInput;
+    const userMessage = this.chatInput.trim();
+    this.chatHistory.push({ author: 'user', message: userMessage });
     this.chatInput = '';
+    this.cdr.detectChanges();
 
-    // Mock bot response
-    setTimeout(() => {
-        this.chatHistory.push({ author: 'bot', message: `I've received your prompt: "${userMessage}". I'm processing it now.` });
-        this.cdr.detectChanges();
-    }, 1000);
+    // Add a "thinking" message from the bot
+    this.chatHistory.push({ author: 'bot', message: 'Thinking...' });
+    this.cdr.detectChanges();
+
+    const payload = {
+      message: userMessage,
+      context: this.mermaidCode
+    };
+
+    this.http.post<{reply: string}>('http://localhost:8000/api/diagrams/chat', payload)
+      .subscribe({
+        next: (data) => {
+          // Remove "Thinking..." message
+          this.chatHistory.pop();
+          // Add the real response
+          this.chatHistory.push({ author: 'bot', message: data.reply });
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          // Remove "Thinking..." message
+          this.chatHistory.pop();
+          console.error('Error from chatbot:', error);
+          const errorMessage = `Sorry, I encountered an error: ${error.error?.detail || error.message}`;
+          this.chatHistory.push({ author: 'bot', message: errorMessage });
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   showListView() {
