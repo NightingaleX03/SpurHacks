@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: stacksketch-frontend
+    env: static
+    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist/stacksketch/browser
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0 
