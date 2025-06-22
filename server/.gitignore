@@ -1,43 +1,29 @@
-# Python bytecode
+# Python cache files
 __pycache__/
 *.py[cod]
-*.pyo
+*$py.class
 
-# Environment variables and credentials
+# Virtual environment folders
+venv/
 .env
 
-# Python virtual environments
-venv/
-.env/
-env/
-.venv/
-
-# VS Code settings (optional)
-.vscode/
-
-# Mac system files
-.DS_Store
-
-# Logs and debug files
-*.log
-
-# Output and cache
-*.sqlite3
-*.db
-*.bak
-.cache/
-*.egg-info/
-dist/
-build/
-
-# Jupyter notebooks (if you use them)
+# Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-# Pytest cache
-.pytest_cache/
+# Hugging Face model cache (you can re-download these)
+.cache/
+transformers_cache/
+hf_cache/
 
-# Mermaid-generated files (if exporting diagrams)
-*.svg
-*.png
+# PyTorch model files
+*.bin
+*.safetensors
+*.pth
 
+# Logs, training output, etc.
+*.log
+*.out
 
+# System files
+.DS_Store
+Thumbs.db
