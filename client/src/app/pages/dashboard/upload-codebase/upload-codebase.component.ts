@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { gsap } from 'gsap';
 import { EnterpriseService } from '../../../services/enterprise.service';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CodebaseService, SavedCodebase, SharedCodebase } from '../../../services/codebase.service';
-import { AuthService } from '../../../services/auth.service';
+import { AuthService, User } from '../../../services/auth.service';
 import { Observable, Subscription } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 interface FileNode {
   name: string;
@@ -458,7 +459,7 @@ export class UploadCodebaseComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     
     try {
-      const response = await this.http.post<RepositoryAnalysis>('http://localhost:8000/api/github/analyze', {
+      const response = await this.http.post<RepositoryAnalysis>(`${environment.apiUrl}/api/github/analyze`, {
         url: this.repoUrl
       }).toPromise();
       
@@ -519,7 +520,7 @@ export class UploadCodebaseComponent implements OnInit, OnDestroy {
       const owner = urlParts[0];
       const repo = urlParts[1];
       
-      const response = await this.http.get(`http://localhost:8000/api/github/content/${owner}/${repo}?path=${encodeURIComponent(file.path)}`).toPromise();
+      const response = await this.http.get(`${environment.apiUrl}/api/github/content/${owner}/${repo}?path=${encodeURIComponent(file.path)}`).toPromise();
       
       if (response && 'content' in response) {
         file.content = (response as any).content;
@@ -551,7 +552,7 @@ export class UploadCodebaseComponent implements OnInit, OnDestroy {
         : "The user has no file open. The repository structure is being explored.";
 
     try {
-      const response = await this.http.post('http://localhost:8000/api/chatbot/query', { 
+      const response = await this.http.post(`${environment.apiUrl}/api/chatbot/query`, { 
         message: userMessage, 
         context: context 
       }).toPromise();

@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import mockData from '../../assets/data/sample-data.json';
-import { AuthService } from './auth.service';
+import { AuthService, User } from './auth.service';
+import { environment } from '../../environments/environment';
 
 interface FileNode {
   name: string;
@@ -94,7 +95,7 @@ export class CodebaseService {
   private loadSharedCodebases() {
     const currentUser = this.authService.getCurrentUser();
     if (currentUser?.email) {
-      this.http.get<{codebases: SharedCodebase[]}>(`http://localhost:8000/api/codebases/my-codebases?user_email=${currentUser.email}`)
+      this.http.get<{codebases: SharedCodebase[]}>(`${environment.apiUrl}/codebases/my-codebases?user_email=${currentUser.email}`)
         .subscribe({
           next: (response) => {
             console.log('Loaded shared codebases:', response.codebases);
@@ -145,7 +146,7 @@ export class CodebaseService {
       throw new Error('User not authenticated');
     }
 
-    return this.http.post('http://localhost:8000/api/codebases/share', {
+    return this.http.post(`${environment.apiUrl}/codebases/share`, {
       name: name,
       description: description,
       is_public: isPublic,
@@ -161,7 +162,7 @@ export class CodebaseService {
       throw new Error('User not authenticated');
     }
 
-    return this.http.post('http://localhost:8000/api/codebases/grant-permission', {
+    return this.http.post(`${environment.apiUrl}/codebases/grant-permission`, {
       codebase_id: codebaseId,
       grantor_email: currentUser.email,
       grantee_email: granteeEmail,
@@ -176,7 +177,7 @@ export class CodebaseService {
       throw new Error('User not authenticated');
     }
 
-    return this.http.get<{permissions: CodebasePermission[]}>(`http://localhost:8000/api/codebases/${codebaseId}/permissions?user_email=${currentUser.email}`);
+    return this.http.get<{permissions: CodebasePermission[]}>(`${environment.apiUrl}/codebases/${codebaseId}/permissions?user_email=${currentUser.email}`);
   }
 
   refreshSharedCodebases(): void {
@@ -189,6 +190,6 @@ export class CodebaseService {
       throw new Error('User not authenticated');
     }
 
-    return this.http.get(`http://localhost:8000/api/codebases/${codebaseId}/data?user_email=${currentUser.email}`);
+    return this.http.get(`${environment.apiUrl}/codebases/${codebaseId}/data?user_email=${currentUser.email}`);
   }
 } 

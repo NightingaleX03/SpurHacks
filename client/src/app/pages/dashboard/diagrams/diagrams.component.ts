@@ -8,6 +8,7 @@ import { AuthService, User } from '../../../services/auth.service';
 import { EnterpriseService, DiagramResource, EnterpriseUser } from '../../../services/enterprise.service';
 import { UserDiagramService, UserDiagram } from '../../../services/user-diagram.service';
 import { SafeHtmlPipe } from '../../../pipes/safe-html.pipe';
+import { environment } from '../../../../environments/environment';
 
 declare var mermaid: any;
 
@@ -345,7 +346,7 @@ export class DiagramsComponent implements OnInit, OnDestroy, AfterViewChecked {
       context: this.mermaidCode
     };
 
-    this.http.post<{reply: string}>('http://localhost:8000/api/diagrams/chat', payload)
+    this.http.post<{reply: string}>(`${environment.apiUrl}/api/diagrams/chat`, payload)
       .subscribe({
         next: (data) => {
           // Remove "Thinking..." message
@@ -401,7 +402,7 @@ export class DiagramsComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.mermaidCode = '';
     this.errorMessage = null;
 
-    this.http.post<any>('http://localhost:8000/api/diagrams/generate', { prompt: this.prompt, diagram_type: this.selectedDiagramType })
+    this.http.post<any>(`${environment.apiUrl}/api/diagrams/generate`, { prompt: this.prompt, diagram_type: this.selectedDiagramType })
       .subscribe({
         next: (data) => {
           this.mermaidCode = data.mermaid_code;
@@ -542,7 +543,7 @@ export class DiagramsComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   testMermaidRendering() {
     console.log('Testing Mermaid rendering...');
-    this.http.get<any>('http://localhost:8000/api/diagrams/test')
+    this.http.get<any>(`${environment.apiUrl}/api/diagrams/test`)
       .subscribe({
         next: (data) => {
           console.log('Test diagram received:', data);

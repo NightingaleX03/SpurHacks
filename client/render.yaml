@@ -3,7 +3,7 @@ services:
     name: stacksketch-frontend
     env: static
     plan: free
-    buildCommand: npm install && npm run build -- --configuration=production
+    buildCommand: npm install && npm run build
     staticPublishPath: ./dist/stacksketch/browser
     envVars:
       - key: NODE_VERSION
