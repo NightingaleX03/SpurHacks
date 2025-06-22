@@ -117,8 +117,11 @@ declare var mermaid: any;
                             <button (click)="downloadDiagram('svg')" class="action-button">Download SVG</button>
                         </div>
                     </div>
-                    <div class="p-4 bg-white rounded-lg shadow-lg" id="mermaid-container">
-                        <div [innerHTML]="svg | safeHtml"></div>
+                    <div class="p-4 bg-white rounded-lg shadow-lg">
+                        <div *ngIf="svg" [innerHTML]="svg | safeHtml"></div>
+                        <div *ngIf="!svg && mermaidCode" class="text-center text-gray-500">
+                            Rendering diagram...
+                        </div>
                     </div>
                 </div>
 
@@ -181,7 +184,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   diagramTypes = ['Class Diagram', 'Object Diagram', 'Component Diagram', 'Deployment Diagram', 'Package Diagram', 'State Machine Diagram', 'Activity Diagram', 'Use Case Diagram', 'Sequence Diagram', 'Communication Diagram', 'Interaction Overview', 'UML'];
   selectedDiagramType: string | null = null;
   mermaidCode = '';
-  svg: any;
+  svg: string | null = null;
   isLoading = false;
   errorMessage: string | null = null;
 
@@ -210,43 +213,23 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.currentUser = this.authService.getCurrentUser();
-    this.setPermissions();
-    this.loadDiagrams();
-
-    // Initialize Mermaid with proper configuration
-    try {
-      mermaid.initialize({ 
-        startOnLoad: false, 
-        theme: 'dark', 
-        securityLevel: 'loose', 
-        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
-        flowchart: {
-          useMaxWidth: true,
-          htmlLabels: true
-        },
-        sequence: {
-          useMaxWidth: true,
-          diagramMarginX: 50,
-          diagramMarginY: 10
-        }
+    // Initialize Mermaid
+    if (typeof mermaid !== 'undefined') {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        securityLevel: 'loose'
       });
-    } catch (e) {
-      console.error('Error initializing Mermaid:', e);
     }
 
     this.themeSubscription = this.themeService.theme$.subscribe((theme: 'light' | 'dark') => {
-      try {
-        mermaid.initialize({ 
-          startOnLoad: false, 
-          theme: theme === 'dark' ? 'dark' : 'default', 
-          securityLevel: 'loose', 
-          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
-        });
-        if (this.mermaidCode) this.renderMermaid();
-      } catch (e) {
-        console.error('Error updating Mermaid theme:', e);
-      }
+      // Theme change logic if needed
+    });
+
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.setPermissions();
+      this.loadDiagrams();
     });
   }
 
@@ -460,27 +443,18 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   renderMermaid() {
     if (this.mermaidCode) {
       try {
-        setTimeout(() => {
-          const container = document.getElementById('mermaid-container');
-          if (!container) {
-            console.error('Mermaid container not found!');
-            this.errorMessage = 'Diagram container not found in the DOM.';
-            this.cdr.detectChanges();
-            return;
-          }
-
-          // Clean up previous content
-          container.innerHTML = '';
-
-          // Clean up code (replace \n with real newlines)
-          const cleanCode = this.mermaidCode.replace(/\\n/g, '\n');
-
-          // Render the diagram
-          mermaid.render('mermaid-preview', cleanCode, (svgCode: string) => {
-            this.svg = svgCode;
-            this.cdr.detectChanges();
-          }, container);
-        }, 0);
+        // Clean up code (replace \n with real newlines)
+        const cleanCode = this.mermaidCode.replace(/\\n/g, '\n');
+        
+        // Use mermaid.render with a unique ID and get the SVG as a string
+        mermaid.render('mermaid-preview-' + Date.now(), cleanCode).then(({ svg }: { svg: string }) => {
+          this.svg = svg;
+          this.cdr.detectChanges();
+        }).catch((error: any) => {
+          console.error('Mermaid rendering error:', error);
+          this.errorMessage = 'There was an error rendering the diagram. The generated code might be invalid.';
+          this.cdr.detectChanges();
+        });
       } catch (e) {
         console.error('Mermaid rendering error:', e);
         this.errorMessage = 'There was an error rendering the diagram. The generated code might be invalid.';
@@ -494,6 +468,8 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   }
 
   downloadDiagram(format: 'png' | 'svg') {
+    if (!this.svg) return;
+    
     if (format === 'svg') {
       const blob = new Blob([this.svg], { type: 'image/svg+xml' });
       this.downloadBlob(blob, `${this.selectedDiagram.name || 'diagram'}.svg`);

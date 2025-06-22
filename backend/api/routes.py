@@ -778,12 +778,62 @@ async def generate_diagram_endpoint(req: GenerateDiagramRequest):
         print(f"Error generating diagram with Gemini: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate diagram. Error: {str(e)}")
 
+@router.get("/diagrams/test")
+async def test_diagram():
+    """
+    Test endpoint that returns a simple Mermaid diagram for debugging
+    """
+    test_diagram = """graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug needed]
+    C --> E[End]
+    D --> E"""
+    
+    return {"mermaid_code": test_diagram}
+
 @router.get("/diagrams/{diagram_id}")
 async def get_diagram(diagram_id: str):
     diagram = diagrams.get(diagram_id)
     if not diagram:
         raise HTTPException(status_code=404, detail="Diagram not found")
     return diagram
+
+@router.post("/diagrams/chat")
+async def diagram_chat(req: ChatRequest):
+    """
+    Handle chatbot queries about a Mermaid diagram using Gemini.
+    """
+    try:
+        gemini_client = get_gemini_client()
+        if not gemini_client:
+            return {"reply": "The AI model is not configured, so I can't analyze the diagram. Please contact support."}
+
+        prompt = f"""
+        You are an expert software architect and a specialist in reading and understanding Mermaid diagrams.
+        A user has a question about a diagram they have generated.
+
+        Here is the Mermaid code for the diagram:
+        ---
+        {req.context}
+        ---
+
+        Here is the user's question:
+        "{req.message}"
+
+        Based on the Mermaid diagram provided, please answer the user's question.
+        Analyze the diagram's structure, components, and relationships to provide a comprehensive answer.
+        If the question is about changing the diagram, you can suggest specific modifications to the Mermaid code.
+        If the question is unclear or cannot be answered from the diagram alone, ask for clarification.
+        Keep your response helpful and concise.
+        """
+
+        response = gemini_client.generate_content(prompt)
+        return {"reply": response.text}
+
+    except Exception as e:
+        print(f"Error in diagram chat: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred while processing your chat message.")
 
 @router.get("/enterprise/resources")
 async def get_enterprise_resources():
@@ -1098,17 +1148,3 @@ async def get_codebase_data(codebase_id: str, user_email: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching codebase data: {str(e)}")
-
-@router.get("/diagrams/test")
-async def test_diagram():
-    """
-    Test endpoint that returns a simple Mermaid diagram for debugging
-    """
-    test_diagram = """graph TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Great!]
-    B -->|No| D[Debug needed]
-    C --> E[End]
-    D --> E"""
-    
-    return {"mermaid_code": test_diagram}
