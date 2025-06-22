@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -24,10 +24,10 @@ gsap.registerPlugin(ScrollTrigger);
             real-time collaboration, and intelligent code analysis
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="neon-button glass px-8 py-4 text-lg font-semibold text-white rounded-lg bg-gradient-to-r from-neon-purple to-electric-blue">
+            <button (click)="navigateToLogin()" class="neon-button glass px-8 py-4 text-lg font-semibold text-white rounded-lg bg-gradient-to-r from-neon-purple to-electric-blue">
               Get Started Free
             </button>
-            <button class="neon-button glass px-8 py-4 text-lg font-semibold text-white rounded-lg border border-neon-purple">
+            <button (click)="openGitHub()" class="neon-button glass px-8 py-4 text-lg font-semibold text-white rounded-lg border border-neon-purple">
               Watch Demo
             </button>
           </div>
@@ -328,10 +328,10 @@ gsap.registerPlugin(ScrollTrigger);
             Join thousands of developers who are already using StackSketch to visualize and optimize their architecture
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button class="neon-button glass px-8 py-4 text-lg font-semibold text-white rounded-lg bg-gradient-to-r from-neon-purple to-electric-blue">
+            <button (click)="navigateToLogin()" class="neon-button glass px-8 py-4 text-lg font-semibold text-white rounded-lg bg-gradient-to-r from-neon-purple to-electric-blue">
               Start Your Free Trial
             </button>
-            <button class="neon-button glass px-8 py-4 text-lg font-semibold text-white rounded-lg border border-neon-purple">
+            <button (click)="navigateToAbout()" class="neon-button glass px-8 py-4 text-lg font-semibold text-white rounded-lg border border-neon-purple">
               Schedule Demo
             </button>
           </div>
@@ -451,10 +451,24 @@ gsap.registerPlugin(ScrollTrigger);
   `]
 })
 export class HomeComponent implements OnInit, AfterViewInit {
+  constructor(private router: Router) {}
+
   ngOnInit() {}
 
   ngAfterViewInit() {
     this.initAnimations();
+  }
+
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  navigateToAbout() {
+    this.router.navigate(['/about']);
+  }
+
+  openGitHub() {
+    window.open('https://github.com/NightingaleX03/SpurHacks', '_blank');
   }
 
   private initAnimations() {

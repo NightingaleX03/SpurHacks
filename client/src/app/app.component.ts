@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { NavbarComponent } from './components/navbar.component';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +26,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     console.log('AppComponent: Initializing...');
+    console.log('AppComponent: Environment - production:', environment.production, 'apiUrl:', environment.apiUrl);
     this.authService.isAuthenticated$.subscribe(
       (isAuth: boolean) => {
         console.log('AppComponent: Authentication state changed:', isAuth);

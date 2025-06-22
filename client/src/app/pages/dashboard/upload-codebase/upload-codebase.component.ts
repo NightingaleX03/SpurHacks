@@ -551,20 +551,43 @@ export class UploadCodebaseComponent implements OnInit, OnDestroy {
         ? `The user has the file '${this.selectedFile.name}' open. Here is its content:\n\n${this.selectedFile.content}`
         : "The user has no file open. The repository structure is being explored.";
 
+    console.log('Sending chat message:', { userMessage, context });
+    console.log('API URL:', `${environment.apiUrl}/api/chatbot/query`);
+
     try {
       const response = await this.http.post(`${environment.apiUrl}/api/chatbot/query`, { 
         message: userMessage, 
         context: context 
       }).toPromise();
       
+      console.log('Chat response:', response);
+      
       if (response && 'reply' in response) {
         this.chatHistory.push({ author: 'bot', message: (response as any).reply });
       } else {
+        console.error('Unexpected response format:', response);
         this.chatHistory.push({ author: 'bot', message: 'Sorry, I received an unexpected response format.' });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error from chatbot:', error);
-      this.chatHistory.push({ author: 'bot', message: 'Sorry, I encountered an error. Please check the console.' });
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText,
+        error: error.error
+      });
+      
+      let errorMessage = 'Sorry, I encountered an error. Please check the console.';
+      
+      if (error.status === 0) {
+        errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection.';
+      } else if (error.status === 500) {
+        errorMessage = 'Server error: The AI service is currently unavailable. Please try again later.';
+      } else if (error.error && error.error.detail) {
+        errorMessage = `Server error: ${error.error.detail}`;
+      }
+      
+      this.chatHistory.push({ author: 'bot', message: errorMessage });
     } finally {
       this.isTyping = false; // Stop typing animation
       // Scroll to bottom after bot response

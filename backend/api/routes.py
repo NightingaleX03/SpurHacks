@@ -536,65 +536,89 @@ async def get_file_content(owner: str, repo: str, path: str):
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"File not found or error fetching content: {e}")
 
+@router.get("/chatbot/test")
+async def test_chatbot():
+    """Test endpoint to check if the chatbot is working"""
+    gemini_client = get_gemini_client()
+    if not gemini_client:
+        return {
+            "status": "error",
+            "message": "Gemini client not available",
+            "details": "GEMINI_API_KEY environment variable is not set"
+        }
+    
+    try:
+        # Test with a simple prompt
+        response = await gemini_client.generate_content("Hello", "This is a test.")
+        return {
+            "status": "success",
+            "message": "Gemini client is working",
+            "response": response[:100] + "..." if len(response) > 100 else response
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": "Gemini client test failed",
+            "details": str(e)
+        }
+
+def get_fallback_response(message: str, context: str) -> str:
+    """Provide a simple fallback response when Gemini API is not available"""
+    message_lower = message.lower()
+    
+    # Basic keyword-based responses
+    if any(word in message_lower for word in ['hello', 'hi', 'hey']):
+        return "Hello! I'm here to help you with your codebase. What would you like to know?"
+    
+    elif any(word in message_lower for word in ['help', 'what can you do']):
+        return "I can help you understand your codebase structure, explain code, suggest improvements, and answer questions about your project. Just ask me anything!"
+    
+    elif any(word in message_lower for word in ['structure', 'files', 'folders']):
+        return "I can see you're asking about the codebase structure. This appears to be a full-stack application with frontend and backend components. What specific part would you like to know more about?"
+    
+    elif any(word in message_lower for word in ['error', 'bug', 'problem', 'issue']):
+        return "I can help you debug issues! Could you provide more details about the error you're encountering? Include error messages, file names, or specific code snippets if possible."
+    
+    elif any(word in message_lower for word in ['explain', 'what does', 'how does']):
+        return "I'd be happy to explain that! Could you provide more context about what specific code or functionality you'd like me to explain?"
+    
+    elif any(word in message_lower for word in ['improve', 'optimize', 'better']):
+        return "I can help you improve your code! What specific area would you like to optimize? Performance, readability, security, or something else?"
+    
+    else:
+        return "I understand you're asking about your codebase. While I'm currently in fallback mode (Gemini API not configured), I can still help with basic questions. Could you rephrase your question or ask something more specific about your code structure, files, or functionality?"
+
 @router.post("/chatbot/query")
 async def chatbot_query(req: ChatRequest):
     """Chatbot endpoint using Gemini API with enhanced context"""
+    print(f"[Chatbot] Received request: {req.message}")
+    
     gemini_client = get_gemini_client()
     if not gemini_client:
-        raise HTTPException(status_code=500, detail="Gemini API key is not configured. Please set the GEMINI_API_KEY environment variable.")
+        print("[Chatbot] Gemini client not available, using fallback")
+        # Use fallback response when Gemini is not available
+        fallback_response = get_fallback_response(req.message, req.context)
+        return {"reply": fallback_response}
     
     try:
-        # Get full repository information
-        repo_info = get_full_repository_info()
-        
-        # Create a comprehensive context with repository structure and file descriptions
-        enhanced_context = f"""
+        print("[Chatbot] Gemini client available, generating response...")
+        # Create a simpler context that doesn't rely on complex repository analysis
+        simple_context = f"""
+You are a helpful AI coding assistant. The user is working with a codebase and has the following context:
+
 {req.context}
 
-COMPLETE REPOSITORY STRUCTURE:
-This is a full-stack web application with the following structure:
-
-PROJECT OVERVIEW:
-- Total Files: {repo_info['total_files']}
-- Total Size: {repo_info['total_size']} bytes
-- Technologies: {', '.join(repo_info['tech_stack_analysis'])}
-
-FOLDER BREAKDOWN:
-{chr(10).join([f"- {folder}: {summary}" for folder, summary in repo_info['folder_summaries'].items()])}
-
-DETAILED STRUCTURE WITH FILE DESCRIPTIONS:
+Please provide helpful, concise answers about the codebase, code structure, or any programming questions they might have.
 """
         
-        # Add detailed structure for each folder with file descriptions
-        for folder, folder_info in repo_info['project_structure'].items():
-            enhanced_context += f"\n{folder.upper()} FOLDER:\n"
-            enhanced_context += f"- Total files: {folder_info['total_files']}\n"
-            enhanced_context += f"- Key files: {', '.join(folder_info['key_files'][:5])}\n"  # Show first 5 key files
-            enhanced_context += f"- Subfolders: {', '.join(folder_info['subfolders'][:5])}\n"  # Show first 5 subfolders
-            
-            # Add file descriptions for key files
-            if folder_info['key_files']:
-                enhanced_context += f"- Key file descriptions:\n"
-                for key_file in folder_info['key_files'][:5]:  # Show descriptions for first 5 key files
-                    if key_file in repo_info['file_descriptions']:
-                        description = repo_info['file_descriptions'][key_file]
-                        enhanced_context += f"  * {key_file}: {description}\n"
-            
-            # Show some important files
-            important_files = [f for f in folder_info['files'] if any(key in f['path'] for key in ['main.py', 'package.json', 'angular.json', 'app.component.ts', 'requirements.txt'])]
-            if important_files:
-                enhanced_context += f"- Important files: {', '.join([f['path'] for f in important_files[:3]])}\n"
-        
-        # Add a summary of all file descriptions
-        if repo_info['file_descriptions']:
-            enhanced_context += f"\nDETAILED FILE ANALYSIS:\n"
-            for file_path, description in list(repo_info['file_descriptions'].items())[:10]:  # Show first 10 descriptions
-                enhanced_context += f"- {file_path}: {description}\n"
-        
-        response = await gemini_client.generate_content(req.message, enhanced_context)
+        response = await gemini_client.generate_content(req.message, simple_context)
+        print(f"[Chatbot] Generated response: {response[:100]}...")
         return {"reply": response}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating response: {str(e)}")
+        print(f"[Chatbot ERROR] {e}")
+        # Use fallback response when Gemini fails
+        fallback_response = get_fallback_response(req.message, req.context)
+        return {"reply": fallback_response}
 
 @router.post("/diagrams/generate")
 async def generate_diagram_endpoint(req: GenerateDiagramRequest):

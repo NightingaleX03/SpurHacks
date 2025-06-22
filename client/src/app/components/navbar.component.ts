@@ -23,8 +23,6 @@ import { AuthService } from '../services/auth.service';
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">Home</a>
           <a routerLink="/about" routerLinkActive="active" class="nav-link">About</a>
           <a *ngIf="!isAuthenticated && router.url !== '/login'" routerLink="/login" class="neon-button px-6 py-2">Login</a>
-          <!-- Temporary debug button -->
-          <button (click)="debugAuth()" class="text-xs bg-red-600 px-2 py-1 rounded">Debug Auth</button>
         </div>
 
         <!-- Mobile Menu Button -->
@@ -39,8 +37,6 @@ import { AuthService } from '../services/auth.service';
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="closeMobileMenu()">Home</a>
           <a routerLink="/about" routerLinkActive="active" class="nav-link" (click)="closeMobileMenu()">About</a>
           <a *ngIf="!isAuthenticated && router.url !== '/login'" routerLink="/login" class="neon-button w-full text-center py-3" (click)="closeMobileMenu()">Login</a>
-          <!-- Temporary debug button -->
-          <button (click)="debugAuth()" class="text-xs bg-red-600 px-2 py-1 rounded text-white">Debug Auth</button>
         </div>
       </div>
     </nav>
@@ -81,13 +77,5 @@ export class NavbarComponent implements OnInit {
 
   closeMobileMenu() {
     this.mobileMenuOpen = false;
-  }
-
-  debugAuth() {
-    console.log('NavbarComponent: Debug Auth called');
-    console.log('NavbarComponent: Current isAuthenticated:', this.isAuthenticated);
-    this.authService.getAuthState();
-    // Force reset auth to ensure navbar shows
-    this.authService.forceResetAuth();
   }
 } 

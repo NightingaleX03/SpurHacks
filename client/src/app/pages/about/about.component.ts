@@ -13,7 +13,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
       <section class="relative py-20 px-4 overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
         <div class="absolute inset-0 bg-black/50"></div>
         <div class="relative z-10 text-center max-w-4xl mx-auto">
-          <h1 class="text-5xl md:text-7xl font-bold mb-6 text-white" style="text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;">
+          <h1 class="text-5xl md:text-7xl font-bold mb-6 text-white">
             <span class="text-neon-purple">About</span> <span class="text-electric-blue">StackSketch</span>
           </h1>
           <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -77,7 +77,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
               <p class="text-highlight font-semibold mb-4">Ontario Tech University</p>
               <p class="text-gray-300 mb-4">2nd Year Student</p>
               <p class="text-gray-400 text-sm leading-relaxed">
-                Frontend specialist with a keen eye for user experience. Crafting beautiful and intuitive interfaces.
+                Full stack developer crafting clean interfaces and powerful backend systems — building seamless products end to end.
               </p>
             </div>
 
@@ -90,7 +90,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
               <p class="text-highlight font-semibold mb-4">University of Waterloo</p>
               <p class="text-gray-300 mb-4">2nd Year Student</p>
               <p class="text-gray-400 text-sm leading-relaxed">
-                Backend architect and DevOps enthusiast. Building scalable infrastructure and robust systems.
+                Backend architect enthusiast. Building scalable infrastructure and robust systems.
               </p>
             </div>
           </div>
