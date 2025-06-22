@@ -16,7 +16,7 @@ gsap.registerPlugin(ScrollTrigger);
       <section class="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
         <div class="absolute inset-0 bg-black/50"></div>
         <div class="relative z-10 text-center px-4 max-w-6xl mx-auto">
-          <h1 class="text-6xl md:text-8xl font-bold mb-6 text-white" style="text-shadow: 0 0 5px currentColor, 0 0 10px currentColor;">
+          <h1 class="text-6xl md:text-8xl font-bold mb-6 text-white">
             <span class="text-neon-purple">Stack</span><span class="text-electric-blue">Sketch</span>
           </h1>
           <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
