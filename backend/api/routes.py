@@ -100,12 +100,18 @@ def json_converter(o):
 def save_data():
     """Saves the in-memory data stores to a JSON file."""
     try:
+        # Convert all Pydantic models to dictionaries before saving
+        codebases_dict = {k: v.dict() for k, v in codebases.items()}
+        permissions_dict = {k: v.dict() for k, v in permissions.items()}
+        companies_dict = {k: v.dict() for k, v in companies.items()}
+        users_dict = {k: v.dict() for k, v in users.items()}
+
         with open(DATA_FILE, 'w') as f:
             json.dump({
-                "codebases": codebases,
-                "permissions": permissions,
-                "companies": companies,
-                "users": users
+                "codebases": codebases_dict,
+                "permissions": permissions_dict,
+                "companies": companies_dict,
+                "users": users_dict
             }, f, default=json_converter, indent=4)
     except Exception as e:
         print(f"Error saving data: {e}")
@@ -117,18 +123,12 @@ def load_data():
         if os.path.exists(DATA_FILE):
             with open(DATA_FILE, 'r') as f:
                 data = json.load(f)
-                codebases = data.get("codebases", {})
-                permissions = data.get("permissions", {})
-                companies = data.get("companies", {})
-                users = data.get("users", {})
                 
-                # Convert string dates back to datetime objects
-                for codebase in codebases.values():
-                    if codebase and isinstance(codebase.get('created_at'), str):
-                        codebase['created_at'] = datetime.fromisoformat(codebase['created_at'])
-                    if codebase and isinstance(codebase.get('updated_at'), str):
-                        codebase['updated_at'] = datetime.fromisoformat(codebase['updated_at'])
-                # Similar conversions can be added for other data types if needed
+                # Convert loaded dictionaries back into Pydantic models, skipping any null values
+                codebases = {k: CodebaseShare(**v) for k, v in data.get("codebases", {}).items() if v}
+                permissions = {k: CodebasePermission(**v) for k, v in data.get("permissions", {}).items() if v}
+                companies = {k: Company(**v) for k, v in data.get("companies", {}).items() if v}
+                users = {k: User(**v) for k, v in data.get("users", {}).items() if v}
         else:
             # If no data file, initialize with sample data and save it
             initialize_sample_data()
@@ -930,12 +930,24 @@ async def share_codebase(req: ShareCodebaseRequest):
         codebase_id = str(uuid.uuid4())
         now = datetime.now()
         
-        # Extract data from codebase_data if provided
+        # Sanitize codebase_data to ensure it's JSON serializable
+        codebase_data_serializable = None
+        if req.codebase_data:
+            try:
+                # Force conversion of any complex objects to JSON-compatible types
+                # Using default=str is a fallback for any non-standard objects
+                codebase_data_json_str = json.dumps(req.codebase_data, default=str)
+                codebase_data_serializable = json.loads(codebase_data_json_str)
+            except TypeError as e:
+                print(f"Could not make codebase_data serializable: {e}")
+                raise HTTPException(status_code=400, detail="Codebase data contains non-serializable content.")
+
+        # Extract data from the sanitized codebase_data
         tech_stack = []
         total_files = 0
-        if req.codebase_data:
-            tech_stack = req.codebase_data.get('tech_stack', [])
-            total_files = req.codebase_data.get('total_files', 0)
+        if codebase_data_serializable:
+            tech_stack = codebase_data_serializable.get('tech_stack', [])
+            total_files = codebase_data_serializable.get('total_files', 0)
         
         codebase = CodebaseShare(
             id=codebase_id,
@@ -949,7 +961,7 @@ async def share_codebase(req: ShareCodebaseRequest):
             is_public=req.is_public,
             tech_stack=tech_stack,
             total_files=total_files,
-            codebase_data=req.codebase_data
+            codebase_data=codebase_data_serializable
         )
         
         codebases[codebase_id] = codebase

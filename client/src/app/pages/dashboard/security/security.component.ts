@@ -1,6 +1,8 @@
 import { Component, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { gsap } from 'gsap';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../../services/auth.service';
 
 // Define the structure for a security finding
 interface SecurityFinding {
@@ -14,6 +16,19 @@ interface SecurityFinding {
   status: 'Open' | 'Resolved';
 }
 
+interface SecurityProfile {
+  user_id: string;
+  name: string;
+  company: string;
+  role: string;
+  industry: string;
+  compliance_score: number;
+  last_scan: string;
+  findings: SecurityFinding[];
+  compliance_requirements: string[];
+  industry_specific: string;
+}
+
 @Component({
   selector: 'app-security',
   standalone: true,
@@ -21,6 +36,24 @@ interface SecurityFinding {
   template: `
     <div>
       <h2 class="text-2xl font-bold text-white mb-6">Security & Compliance</h2>
+      
+      <!-- User Profile Info -->
+      <div *ngIf="securityProfile" class="glass p-4 rounded-lg mb-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-lg font-semibold text-white">{{ securityProfile.name }} - {{ securityProfile.role }}</h3>
+            <p class="text-gray-400">{{ securityProfile.company }} ({{ securityProfile.industry }})</p>
+            <p class="text-sm text-gray-500">Industry Focus: {{ securityProfile.industry_specific }}</p>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-bold text-neon-purple">{{ securityProfile.compliance_score }}%</div>
+            <div class="text-sm text-gray-400">Compliance Score</div>
+          </div>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <span *ngFor="let req of securityProfile.compliance_requirements" class="compliance-tag">{{ req }}</span>
+        </div>
+      </div>
       
       <!-- Action Header -->
       <div class="flex justify-between items-center mb-6">
@@ -110,62 +143,52 @@ export class SecurityComponent implements AfterViewInit {
   isScanning = false;
   lastScanDate: Date | null = null;
   findings: SecurityFinding[] = [];
+  securityProfile: SecurityProfile | null = null;
 
-  mockFindings: SecurityFinding[] = [
-    {
-      id: 'vuln_01',
-      title: 'Over-privileged IAM Role',
-      severity: 'High',
-      category: 'IAM',
-      description: 'IAM role "EC2-Admin-Access" has full administrative privileges, violating the principle of least privilege.',
-      suggestion: 'Restrict permissions for role "EC2-Admin-Access" to only the necessary EC2 actions.',
-      complianceTags: ['SOC 2'],
-      status: 'Open'
-    },
-    {
-      id: 'vuln_02',
-      title: 'Unencrypted S3 Bucket',
-      severity: 'High',
-      category: 'Data Security',
-      description: 'The S3 bucket "customer-sensitive-data" does not have server-side encryption enabled.',
-      suggestion: 'Enable AES-256 encryption at rest for the "customer-sensitive-data" S3 bucket.',
-      complianceTags: ['HIPAA', 'GDPR'],
-      status: 'Open'
-    },
-    {
-      id: 'vuln_03',
-      title: 'Missing GDPR Cookie Policy Endpoint',
-      severity: 'Medium',
-      category: 'Compliance',
-      description: 'The main web application is missing a dedicated endpoint for managing user cookie preferences as required by GDPR.',
-      suggestion: 'Create a /gdpr-cookie-policy endpoint and a corresponding UI banner for user consent.',
-      complianceTags: ['GDPR'],
-      status: 'Open'
-    },
-    {
-      id: 'vuln_04',
-      title: 'Publicly Exposed Database Port',
-      severity: 'High',
-      category: 'Networking',
-      description: 'The primary PostgreSQL database on port 5432 is open to the public internet (0.0.0.0/0).',
-      suggestion: 'Update the security group to restrict access to port 5432 to only whitelisted application server IPs.',
-      complianceTags: ['SOC 2'],
-      status: 'Open'
-    },
-    {
-      id: 'vuln_05',
-      title: 'Outdated SSH Protocol',
-      severity: 'Low',
-      category: 'Networking',
-      description: 'The bastion host is allowing connections using older, less secure SSH-RSA keys.',
-      suggestion: 'Update the SSH daemon configuration to only allow modern signature algorithms like rsa-sha2-512.',
-      complianceTags: ['SOC 2'],
-      status: 'Open'
-    }
-  ];
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
   ngAfterViewInit() {
+    this.loadSecurityProfile();
     this.runScan(); // Automatically run a scan on component load
+  }
+
+  private loadSecurityProfile() {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      console.error('No current user found');
+      return;
+    }
+
+    this.http.get<any>('assets/data/security-profiles.json').subscribe({
+      next: (data) => {
+        const userProfile = data.security_profiles[currentUser.id];
+        if (userProfile) {
+          this.securityProfile = userProfile;
+          console.log('Loaded security profile for:', userProfile.name);
+        } else {
+          console.warn('No security profile found for user:', currentUser.id);
+          // Fallback to default profile
+          this.securityProfile = {
+            user_id: currentUser.id,
+            name: currentUser.name,
+            company: 'Unknown',
+            role: currentUser.role,
+            industry: 'Unknown',
+            compliance_score: 50,
+            last_scan: new Date().toISOString(),
+            findings: [],
+            compliance_requirements: [],
+            industry_specific: 'General'
+          };
+        }
+      },
+      error: (error) => {
+        console.error('Error loading security profiles:', error);
+      }
+    });
   }
 
   runScan() {
@@ -175,8 +198,14 @@ export class SecurityComponent implements AfterViewInit {
 
     // Simulate a network delay for the scan
     setTimeout(() => {
-      this.findings = this.mockFindings;
-      this.lastScanDate = new Date();
+      if (this.securityProfile) {
+        this.findings = this.securityProfile.findings;
+        this.lastScanDate = new Date(this.securityProfile.last_scan);
+      } else {
+        // Fallback to empty findings if no profile loaded
+        this.findings = [];
+        this.lastScanDate = new Date();
+      }
       this.isScanning = false;
       
       // Animate the results appearing
@@ -198,7 +227,9 @@ export class SecurityComponent implements AfterViewInit {
       Security Audit Report
       =====================
       Date: ${new Date().toUTCString()}
-      Compliance Score: 85% (Calculated)
+      User: ${this.securityProfile?.name || 'Unknown'}
+      Company: ${this.securityProfile?.company || 'Unknown'}
+      Compliance Score: ${this.securityProfile?.compliance_score || 0}%
       
       Findings Summary:
       - High Risk: ${this.getSeverityCount('High')}

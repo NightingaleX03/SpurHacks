@@ -418,31 +418,23 @@ export class UploadCodebaseComponent implements OnInit, OnDestroy {
   ) {
     this.savedCodebases$ = this.codebaseService.savedCodebases$;
     this.sharedCodebases$ = this.codebaseService.sharedCodebases$;
+
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       if (user) {
+        this.isEmployee = user.role === 'enterprise_employee' || user.role === 'enterprise_employer';
         this.isEmployer = user.role === 'enterprise_employer';
-        this.isEducational = !user['companyId'];
-        this.canDeleteCodebases = this.isEmployer || this.isEducational;
-        // Refresh shared codebases when user changes
-        this.codebaseService.refreshSharedCodebases();
+        this.canDeleteCodebases = this.isEmployer;
       } else {
+        this.isEmployee = false;
+        this.isEmployer = false;
         this.canDeleteCodebases = false;
       }
     });
   }
 
   ngOnInit(): void {
-    this.isEmployee = this.enterpriseService.isEmployee();
-    if (this.isEmployee) {
-      this.canUploadCodebases = this.enterpriseService.canAccessFeature('canUploadCodebases');
-    }
-    
-    // Debug: Log current user and refresh shared codebases
-    const currentUser = this.authService.getCurrentUser();
-    console.log('Current user in component:', currentUser);
-    if (currentUser) {
-      this.codebaseService.refreshSharedCodebases();
-    }
+    // Refresh shared codebases on init
+    this.codebaseService.refreshSharedCodebases();
   }
   
   ngOnDestroy(): void {
