@@ -10,4 +10,6 @@ services:
         value: 3.10.0
       - key: GEMINI_API_KEY
         sync: false
+      - key: GITHUB_TOKEN
+        sync: false
     healthCheckPath: /api/diagrams/test 
