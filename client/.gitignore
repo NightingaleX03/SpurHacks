@@ -39,4 +39,9 @@ testem.log
 
 # System files
 .DS_Store
+<<<<<<< HEAD
 Thumbs.db
+=======
+Thumbs.db
+/backend/.env
+>>>>>>> sarah

@@ -169,6 +169,64 @@
           "canShare": ["emp_9", "emp_10"]
         }
       }
+    ],
+    "comp_101": [
+      {
+        "id": "diag_001",
+        "name": "TechCorp User Authentication System",
+        "description": "Complete authentication flow including OAuth2, JWT tokens, and password reset",
+        "type": "Sequence Diagram",
+        "company_id": "comp_101",
+        "created_by": "emp_001",
+        "created_at": "2023-10-26T10:00:00Z",
+        "last_modified": "2023-10-27T14:30:00Z",
+        "access_level": "shared",
+        "shared_with": ["emp_001", "emp_002"],
+        "mermaid_code": "sequenceDiagram;Alice->>Bob: Hello Bob, how are you?;Bob-->>Alice: I am good thanks!;",
+        "permissions": {
+          "canView": ["emp_001", "emp_002", "emp_003"],
+          "canEdit": ["emp_001"],
+          "canShare": ["emp_001"]
+        }
+      },
+      {
+        "id": "diag_002",
+        "name": "TechCorp Database Schema",
+        "description": "ERD for the main product database",
+        "type": "ER Diagram",
+        "company_id": "comp_101",
+        "created_by": "emp_002",
+        "created_at": "2023-09-15T11:00:00Z",
+        "last_modified": "2023-10-20T09:00:00Z",
+        "access_level": "company",
+        "shared_with": [],
+        "mermaid_code": "erDiagram\n    CUSTOMER ||--o{ ORDER : places\n    ORDER ||--|{ LINE-ITEM : contains\n    CUSTOMER }|..|{ DELIVERY-ADDRESS : uses",
+        "permissions": {
+          "canView": ["emp_001", "emp_002"],
+          "canEdit": ["emp_002"],
+          "canShare": ["emp_002"]
+        }
+      }
+    ],
+    "comp_102": [
+      {
+        "id": "diag_003",
+        "name": "Innovate Inc. Payment Gateway",
+        "description": "Flow for processing payments via multiple providers",
+        "type": "Activity Diagram",
+        "company_id": "comp_102",
+        "created_by": "emp_004",
+        "created_at": "2023-08-01T16:20:00Z",
+        "last_modified": "2023-10-25T11:45:00Z",
+        "access_level": "shared",
+        "shared_with": ["emp_004"],
+        "mermaid_code": "activityDiagram\n    start\n    :Receive Payment Request;\n    if (Credit Card?) then (yes)\n        :Process Credit Card;\n    else (no)\n        :Redirect to PayPal;\n    endif\n    :Send Confirmation;\n    stop",
+        "permissions": {
+          "canView": ["emp_004", "emp_005"],
+          "canEdit": ["emp_004"],
+          "canShare": ["emp_004"]
+        }
+      }
     ]
   },
   "company_codebases": {
@@ -287,6 +345,48 @@
           "canView": ["emp_9", "emp_10"],
           "canEdit": ["emp_9"],
           "canShare": ["emp_9"]
+        }
+      }
+    ],
+    "comp_101": [
+      {
+        "id": "code_001",
+        "name": "Project Alpha API",
+        "description": "Main REST API for Project Alpha",
+        "language": "Python",
+        "framework": "FastAPI",
+        "size": "25.6 MB",
+        "company_id": "comp_101",
+        "uploaded_by": "emp_001",
+        "created_at": "2023-07-20T09:00:00Z",
+        "last_modified": "2023-10-28T12:00:00Z",
+        "access_level": "company",
+        "shared_with": [],
+        "permissions": {
+          "canView": ["emp_001", "emp_002"],
+          "canEdit": ["emp_001"],
+          "canShare": ["emp_001"]
+        }
+      }
+    ],
+    "comp_102": [
+      {
+        "id": "code_002",
+        "name": "Innovate Inc. Frontend",
+        "description": "React-based frontend for the main customer portal",
+        "language": "TypeScript",
+        "framework": "React",
+        "size": "58.1 MB",
+        "company_id": "comp_102",
+        "uploaded_by": "emp_004",
+        "created_at": "2023-06-10T14:00:00Z",
+        "last_modified": "2023-10-27T18:00:00Z",
+        "access_level": "shared",
+        "shared_with": ["emp_004", "emp_005"],
+        "permissions": {
+          "canView": ["emp_004", "emp_005"],
+          "canEdit": ["emp_004"],
+          "canShare": ["emp_004"]
         }
       }
     ]

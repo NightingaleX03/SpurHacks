@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from typing import Optional, Dict
+from typing import Optional, Dict, List
+from datetime import datetime
+from enum import Enum
 
 router = APIRouter()
 
@@ -26,6 +28,63 @@ class ScanRequest(BaseModel):
 class SubscribeRequest(BaseModel):
     user_id: int
     plan: str
+
+class UserRole(str, Enum):
+    ENTERPRISE_EMPLOYER = "enterprise_employer"
+    ENTERPRISE_EMPLOYEE = "enterprise_employee"
+    EDUCATION_USER = "education_user"
+
+class PermissionType(str, Enum):
+    READ = "read"
+    WRITE = "write"
+    ADMIN = "admin"
+
+class CodebaseShare(BaseModel):
+    id: str
+    name: str
+    description: Optional[str] = None
+    owner_id: str
+    owner_email: str
+    company_id: str
+    created_at: datetime
+    updated_at: datetime
+    is_public: bool = False
+    tech_stack: List[str] = []
+    total_files: int = 0
+    total_size: int = 0
+    codebase_data: Optional[dict] = None  # Store the actual codebase content
+
+class CodebasePermission(BaseModel):
+    id: str
+    codebase_id: str
+    user_id: str
+    user_email: str
+    permission: PermissionType
+    granted_by: str
+    granted_at: datetime
+    expires_at: Optional[datetime] = None
+
+class Company(BaseModel):
+    id: str
+    name: str
+    owner_id: str
+    created_at: datetime
+    settings: dict = {}
+
+class User(BaseModel):
+    id: str
+    email: str
+    role: UserRole
+    company_id: Optional[str] = None
+    created_at: datetime
+    settings: dict = {}
+
+class GrantPermissionRequest(BaseModel):
+    codebase_id: str
+    grantee_email: str  # The employee to be granted access
+    permission: PermissionType
+    expires_at: Optional[datetime] = None
+    grantor_email: str  # The admin/employer making the request
 
 # --- In-memory storage for demonstration ---
 diagrams: Dict[int, Diagram] = {}

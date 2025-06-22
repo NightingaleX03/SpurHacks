@@ -130,6 +130,10 @@ export class EnterpriseService {
     return this.enterpriseUsers.filter(u => u.company_id === company.id);
   }
 
+  getCompanyEmployer(companyId: string): EnterpriseUser | undefined {
+    return this.enterpriseUsers.find(u => u.company_id === companyId && u.role === 'enterprise_employer');
+  }
+
   // Check if user can access a specific feature
   canAccessFeature(feature: string): boolean {
     const user = this.authService.getCurrentUser() as EnterpriseUser;

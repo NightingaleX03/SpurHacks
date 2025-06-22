@@ -493,5 +493,147 @@
       "framework": "Custom",
       "size": "1.5 MB"
     }
-  ]
+  ],
+  "user_diagrams": {
+    "user_1": [
+      {
+        "id": "diag_user_1_1",
+        "name": "My Personal Blog Architecture",
+        "description": "A simple architecture for a personal blog.",
+        "type": "Component Diagram",
+        "mermaid_code": "componentDiagram\n[Blog Frontend] --> [API Gateway]\n[API Gateway] --> [Posts Service]\n[API Gateway] --> [Comments Service]\n[Posts Service] --> [Database]\n[Comments Service] --> [Database]"
+      }
+    ],
+    "user_2": [
+       {
+        "id": "diag_user_2_1",
+        "name": "E-commerce Checkout Flow",
+        "description": "User flow for an e-commerce checkout process.",
+        "type": "Activity Diagram",
+        "mermaid_code": "activityDiagram\nstart\n:View Cart;\n:Proceed to Checkout;\n:Enter Shipping Info;\n:Enter Payment Info;\n:Place Order;\nstop"
+      }
+    ],
+    "edu_1": [
+      {
+        "id": "diag_edu_1_1",
+        "name": "University Course Registration System",
+        "description": "State machine for course registration.",
+        "type": "State Machine Diagram",
+        "mermaid_code": "stateDiagram-v2\n    [*] --> NotRegistered\n    NotRegistered --> Registered: select courses\n    Registered --> CoursesSelected: confirm selection\n    CoursesSelected --> Paid: make payment\n    Paid --> [*]: registration complete"
+      }
+    ]
+  },
+  "users": [
+    {
+      "id": "user_1",
+      "email": "john.doe@example.com",
+      "password": "user_1",
+      "name": "John Doe",
+      "role": "education_user",
+      "institution": "Stanford University",
+      "position": "Computer Science Student",
+      "join_date": "2023-09-01",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_2",
+      "email": "jane.smith@example.com",
+      "password": "user_2",
+      "name": "Jane Smith",
+      "role": "education_user",
+      "institution": "MIT",
+      "position": "Graduate Student",
+      "join_date": "2023-08-15",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_3",
+      "email": "robert.wilson@example.com",
+      "password": "user_3",
+      "name": "Robert Wilson",
+      "role": "education_user",
+      "institution": "UC Berkeley",
+      "position": "Professor",
+      "join_date": "2023-07-20",
+      "subscription": "Academic"
+    },
+    {
+      "id": "user_4",
+      "email": "sophia.chen@example.com",
+      "password": "user_4",
+      "name": "Sophia Chen",
+      "role": "education_user",
+      "institution": "Carnegie Mellon University",
+      "position": "Research Assistant",
+      "join_date": "2023-10-05",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_5",
+      "email": "michael.johnson@example.com",
+      "password": "user_5",
+      "name": "Michael Johnson",
+      "role": "education_user",
+      "institution": "Georgia Tech",
+      "position": "PhD Student",
+      "join_date": "2023-06-12",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_6",
+      "email": "amanda.davis@example.com",
+      "password": "user_6",
+      "name": "Amanda Davis",
+      "role": "education_user",
+      "institution": "University of Washington",
+      "position": "Lecturer",
+      "join_date": "2023-09-30",
+      "subscription": "Academic"
+    },
+    {
+      "id": "user_7",
+      "email": "daniel.martinez@example.com",
+      "password": "user_7",
+      "name": "Daniel Martinez",
+      "role": "education_user",
+      "institution": "University of Texas",
+      "position": "Undergraduate Student",
+      "join_date": "2023-11-08",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_8",
+      "email": "emily.taylor@example.com",
+      "password": "user_8",
+      "name": "Emily Taylor",
+      "role": "education_user",
+      "institution": "University of Michigan",
+      "position": "Teaching Assistant",
+      "join_date": "2023-08-25",
+      "subscription": "Student"
+    },
+    {
+      "id": "user_9",
+      "email": "christopher.anderson@example.com",
+      "password": "user_9",
+      "name": "Christopher Anderson",
+      "role": "education_user",
+      "institution": "University of Illinois",
+      "position": "Associate Professor",
+      "join_date": "2023-07-10",
+      "subscription": "Academic"
+    },
+    {
+      "id": "user_10",
+      "email": "olivia.thomas@example.com",
+      "password": "user_10",
+      "name": "Olivia Thomas",
+      "role": "education_user",
+      "institution": "University of Pennsylvania",
+      "position": "Master's Student",
+      "join_date": "2023-10-20",
+      "subscription": "Student"
+    }
+  ],
+  "user_codebases": {}
 } 

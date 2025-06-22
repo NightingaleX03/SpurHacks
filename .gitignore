@@ -1,0 +1,27 @@
+# Environments
+backend/.env
+
+# IDE and editor files
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+package-lock.json
+/client/dist
+/client/node_modules
+
+# Misc
+.DS_Store
+*.swp 
