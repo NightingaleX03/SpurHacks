@@ -17,6 +17,8 @@ allowed_origins = [
     "http://localhost:4200",  # Angular dev server
     "https://stacksketch-frontend.onrender.com",  # Render frontend
     "https://stacksketch.onrender.com",  # Alternative frontend URL
+    "https://outwiththediagram.biz",  # Custom domain
+    "https://www.outwiththediagram.biz",  # Custom domain with www
 ]
 
 # Add any additional origins from environment variable
