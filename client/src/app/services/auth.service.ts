@@ -26,9 +26,13 @@ export class AuthService {
   private usersLoaded = false;
 
   constructor(private router: Router, private http: HttpClient) {
+    console.log('AuthService: Constructor called');
+    
     // Check if user is already logged in (from localStorage)
     const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('user');
+    
+    console.log('AuthService: localStorage check - token:', !!token, 'userStr:', !!userStr);
     
     if (token && userStr) {
       try {
@@ -37,17 +41,19 @@ export class AuthService {
         if (user && user.id && user.email && user.name) {
           this.isAuthenticatedSubject.next(true);
           this.currentUserSubject.next(user);
-          console.log('User restored from localStorage:', user.name);
+          console.log('AuthService: User restored from localStorage:', user.name);
         } else {
           // Invalid user data, clear everything
+          console.log('AuthService: Invalid user data, clearing auth');
           this.clearAuthData();
         }
       } catch (error) {
-        console.error('Error parsing user data from localStorage:', error);
+        console.error('AuthService: Error parsing user data from localStorage:', error);
         this.clearAuthData();
       }
     } else {
       // No token or user data, ensure we're not authenticated
+      console.log('AuthService: No auth data found, setting not authenticated');
       this.isAuthenticatedSubject.next(false);
       this.currentUserSubject.next(null);
     }
@@ -59,8 +65,17 @@ export class AuthService {
   private loadUsers() {
     if (this.usersLoaded) return;
     console.log('Loading users from sample data...');
+    
+    // Add a timeout to prevent hanging if the request takes too long
+    const timeout = setTimeout(() => {
+      console.warn('AuthService: Sample data loading timed out, using fallback');
+      this.users = [];
+      this.usersLoaded = true;
+    }, 5000); // 5 second timeout
+    
     this.http.get<any>('assets/data/sample-data.json').subscribe({
       next: (data) => {
+        clearTimeout(timeout);
         console.log('Sample data loaded:', data);
         this.users = [
           ...(data.enterprise_users || []),
@@ -70,10 +85,12 @@ export class AuthService {
         this.usersLoaded = true;
       },
       error: (error) => {
+        clearTimeout(timeout);
         console.error('Error loading users:', error);
         // Set default users if loading fails
         this.users = [];
         this.usersLoaded = true;
+        console.log('AuthService: Using empty users array due to loading error');
       }
     });
   }
@@ -144,5 +161,20 @@ export class AuthService {
     localStorage.removeItem('user');
     this.isAuthenticatedSubject.next(false);
     this.currentUserSubject.next(null);
+    console.log('AuthService: Authentication data cleared');
+  }
+
+  // Method to force reset authentication state (useful for debugging)
+  forceResetAuth() {
+    console.log('AuthService: Force resetting authentication state');
+    this.clearAuthData();
+  }
+
+  // Method to check current authentication state
+  getAuthState() {
+    const isAuth = this.isAuthenticatedSubject.value;
+    const user = this.currentUserSubject.value;
+    console.log('AuthService: Current state - isAuthenticated:', isAuth, 'user:', user);
+    return { isAuthenticated: isAuth, user };
   }
 } 
