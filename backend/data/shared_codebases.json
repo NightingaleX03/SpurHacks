@@ -1,0 +1,16 @@
+{
+    "codebases": {
+        "codebase-1": null
+    },
+    "permissions": {
+        "perm-1": null
+    },
+    "companies": {
+        "comp_1": null
+    },
+    "users": {
+        "sarah.johnson@techcorp-solutions.com": null,
+        "mike.chen@techcorp-solutions.com": null,
+        "emma.rodriguez@techcorp-solutions.com": null
+    }
+}

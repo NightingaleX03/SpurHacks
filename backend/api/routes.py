@@ -124,9 +124,9 @@ def load_data():
                 
                 # Convert string dates back to datetime objects
                 for codebase in codebases.values():
-                    if isinstance(codebase.get('created_at'), str):
+                    if codebase and isinstance(codebase.get('created_at'), str):
                         codebase['created_at'] = datetime.fromisoformat(codebase['created_at'])
-                    if isinstance(codebase.get('updated_at'), str):
+                    if codebase and isinstance(codebase.get('updated_at'), str):
                         codebase['updated_at'] = datetime.fromisoformat(codebase['updated_at'])
                 # Similar conversions can be added for other data types if needed
         else:
@@ -181,6 +181,10 @@ class SaveCodebaseRequest(BaseModel):
     user_email: str
     company_id: str
     is_public: bool = False
+
+class GenerateDiagramRequest(BaseModel):
+    prompt: str
+    diagram_type: str
 
 # Dummy storage for demonstration
 diagrams = {}
@@ -593,15 +597,186 @@ DETAILED STRUCTURE WITH FILE DESCRIPTIONS:
         raise HTTPException(status_code=500, detail=f"Error generating response: {str(e)}")
 
 @router.post("/diagrams/generate")
-async def generate_diagram(req: dict):
-    # In a real app, you'd use a more robust way to generate diagrams
-    # For now, we'll just store and retrieve it
-    diagram_id = str(len(diagrams) + 1)
-    diagrams[diagram_id] = {
-        "prompt": req.get("prompt"),
-        "code": f"graph TD;\n    A[Start] --> B({req.get('type')});\n    B --> C{{End}};"
-    }
-    return {"diagram_id": diagram_id}
+async def generate_diagram_endpoint(req: GenerateDiagramRequest):
+    """
+    Generates a Mermaid.js diagram using the Gemini API based on a user prompt.
+    """
+    gemini_client = get_gemini_client()
+    if not gemini_client:
+        # Fallback: Generate a simple diagram without Gemini API
+        print("[WARNING] Gemini API key not configured. Using fallback diagram generation.")
+        
+        # Create a simple diagram based on the prompt and type
+        fallback_diagrams = {
+            "Sequence Diagram": f"""sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Database
+    
+    User->>Frontend: {req.prompt}
+    Frontend->>Backend: Process Request
+    Backend->>Database: Query Data
+    Database-->>Backend: Return Data
+    Backend-->>Frontend: Send Response
+    Frontend-->>User: Display Result""",
+            
+            "Class Diagram": f"""classDiagram
+    class User {{
+        +String name
+        +String email
+        +login()
+        +logout()
+    }}
+    class System {{
+        +String name
+        +process()
+    }}
+    User --> System : uses""",
+            
+            "Flowchart": f"""flowchart TD
+    A[Start] --> B{{{req.prompt}}}
+    B -->|Yes| C[Process]
+    B -->|No| D[Skip]
+    C --> E[End]
+    D --> E""",
+            
+            "Component Diagram": f"""graph TB
+    subgraph Frontend
+        A[UI Component]
+    end
+    subgraph Backend
+        B[API Service]
+        C[Database]
+    end
+    A --> B
+    B --> C""",
+            
+            "Activity Diagram": f"""flowchart TD
+    A[Start] --> B{{{req.prompt}}}
+    B --> C[Process Step 1]
+    C --> D[Process Step 2]
+    D --> E[Decision]
+    E -->|Yes| F[Continue]
+    E -->|No| G[End]
+    F --> H[Final Step]
+    H --> G""",
+            
+            "Use Case Diagram": f"""graph TD
+    subgraph System
+        A[User Management]
+        B[Authentication]
+        C[Data Processing]
+    end
+    subgraph Actors
+        D[User]
+        E[Admin]
+    end
+    D --> A
+    D --> B
+    E --> C""",
+            
+            "State Machine Diagram": f"""stateDiagram-v2
+    [*] --> Idle
+    Idle --> Processing: {req.prompt}
+    Processing --> Success: Complete
+    Processing --> Error: Fail
+    Success --> Idle: Reset
+    Error --> Idle: Reset""",
+            
+            "Deployment Diagram": f"""graph TB
+    subgraph Client
+        A[Web Browser]
+    end
+    subgraph Server
+        B[Web Server]
+        C[Application Server]
+        D[Database Server]
+    end
+    A --> B
+    B --> C
+    C --> D""",
+            
+            "Package Diagram": f"""graph TB
+    subgraph Package1
+        A[Module A]
+        B[Module B]
+    end
+    subgraph Package2
+        C[Module C]
+        D[Module D]
+    end
+    A --> C
+    B --> D""",
+            
+            "Object Diagram": f"""graph TB
+    A[User: john_doe]
+    B[System: main_app]
+    C[Database: user_db]
+    A --> B
+    B --> C""",
+            
+            "Communication Diagram": f"""sequenceDiagram
+    participant A as User
+    participant B as System
+    participant C as Database
+    
+    A->>B: Request
+    B->>C: Query
+    C-->>B: Response
+    B-->>A: Result""",
+            
+            "Interaction Overview": f"""flowchart TD
+    A[Start] --> B[Main Flow]
+    B --> C[Sub Flow 1]
+    B --> D[Sub Flow 2]
+    C --> E[End]
+    D --> E""",
+            
+            "UML": f"""classDiagram
+    class User {{
+        +String name
+        +String email
+        +login()
+        +logout()
+    }}
+    class System {{
+        +String name
+        +process()
+    }}
+    User --> System : uses"""
+        }
+        
+        diagram_type = req.diagram_type
+        if diagram_type in fallback_diagrams:
+            mermaid_code = fallback_diagrams[diagram_type]
+        else:
+            mermaid_code = fallback_diagrams["Flowchart"]
+        
+        return {"mermaid_code": mermaid_code}
+
+    # Construct a specialized prompt for the Gemini API
+    full_prompt = f"""
+    Act as an expert system architect. Based on the following user prompt and diagram type, generate a valid Mermaid.js diagram.
+    The response should ONLY be the raw Mermaid.js code block, starting with 'graph' or 'sequenceDiagram' etc. Do not include any explanation or markdown code fences like ```mermaid.
+
+    USER PROMPT: "{req.prompt}"
+    DIAGRAM TYPE: "{req.diagram_type}"
+    """
+
+    try:
+        # Generate the diagram code using Gemini
+        mermaid_code = await gemini_client.generate_content(prompt=full_prompt)
+        
+        # Basic validation to ensure the response looks like Mermaid code
+        if not any(keyword in mermaid_code for keyword in ['graph', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'gantt']):
+            raise ValueError("The generated output does not appear to be a valid Mermaid diagram.")
+
+        return {"mermaid_code": mermaid_code.strip()}
+
+    except Exception as e:
+        print(f"Error generating diagram with Gemini: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate diagram. Error: {str(e)}")
 
 @router.get("/diagrams/{diagram_id}")
 async def get_diagram(diagram_id: str):
@@ -923,3 +1098,17 @@ async def get_codebase_data(codebase_id: str, user_email: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching codebase data: {str(e)}")
+
+@router.get("/diagrams/test")
+async def test_diagram():
+    """
+    Test endpoint that returns a simple Mermaid diagram for debugging
+    """
+    test_diagram = """graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug needed]
+    C --> E[End]
+    D --> E"""
+    
+    return {"mermaid_code": test_diagram}

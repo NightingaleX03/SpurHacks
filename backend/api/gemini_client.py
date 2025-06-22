@@ -5,7 +5,11 @@ from typing import Optional
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+try:
+    load_dotenv()
+except Exception as e:
+    print(f"[WARNING] Could not load .env file: {e}")
+    print("[WARNING] Continuing without environment variables...")
 
 class GeminiClient:
     def __init__(self, api_key: Optional[str] = None):
@@ -103,6 +107,10 @@ def get_gemini_client() -> Optional[GeminiClient]:
     if gemini_client is None:
         try:
             gemini_client = GeminiClient()
-        except ValueError:
+        except ValueError as e:
+            print(f"[Gemini ERROR] {e}")
+            print("[Gemini ERROR] Please create a .env file in the backend directory with:")
+            print("[Gemini ERROR] GEMINI_API_KEY=your_actual_api_key_here")
+            print("[Gemini ERROR] Get your API key from: https://makersuite.google.com/app/apikey")
             return None
     return gemini_client 

@@ -94,6 +94,7 @@ declare var mermaid: any;
                 </span>
               </button>
               <button (click)="showListView()" class="ml-4 action-button">Cancel</button>
+              <button (click)="testMermaidRendering()" class="ml-4 action-button">Test Rendering</button>
             </div>
           </div>
         </div>
@@ -213,10 +214,39 @@ export class DiagramsComponent implements OnInit, OnDestroy {
     this.setPermissions();
     this.loadDiagrams();
 
-    mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'});
+    // Initialize Mermaid with proper configuration
+    try {
+      mermaid.initialize({ 
+        startOnLoad: false, 
+        theme: 'dark', 
+        securityLevel: 'loose', 
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true
+        },
+        sequence: {
+          useMaxWidth: true,
+          diagramMarginX: 50,
+          diagramMarginY: 10
+        }
+      });
+    } catch (e) {
+      console.error('Error initializing Mermaid:', e);
+    }
+
     this.themeSubscription = this.themeService.theme$.subscribe((theme: 'light' | 'dark') => {
-      mermaid.initialize({ startOnLoad: false, theme: theme === 'dark' ? 'dark' : 'default', securityLevel: 'loose', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'});
-      if (this.mermaidCode) this.renderMermaid();
+      try {
+        mermaid.initialize({ 
+          startOnLoad: false, 
+          theme: theme === 'dark' ? 'dark' : 'default', 
+          securityLevel: 'loose', 
+          fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'
+        });
+        if (this.mermaidCode) this.renderMermaid();
+      } catch (e) {
+        console.error('Error updating Mermaid theme:', e);
+      }
     });
   }
 
@@ -350,7 +380,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
     this.mermaidCode = '';
     this.errorMessage = null;
 
-    this.http.post<any>('http://localhost:8000/api/diagrams', { prompt: this.prompt, diagram_type: this.selectedDiagramType })
+    this.http.post<any>('http://localhost:8000/api/diagrams/generate', { prompt: this.prompt, diagram_type: this.selectedDiagramType })
       .subscribe({
         next: (data) => {
           this.mermaidCode = data.mermaid_code;
@@ -361,7 +391,7 @@ export class DiagramsComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error generating diagram:', error);
-          this.errorMessage = 'An error occurred while generating the diagram. Please try again.';
+          this.errorMessage = `An error occurred while generating the diagram: ${error.error?.detail || error.message}`;
           this.isLoading = false;
         },
       });
@@ -430,13 +460,31 @@ export class DiagramsComponent implements OnInit, OnDestroy {
   renderMermaid() {
     if (this.mermaidCode) {
       try {
-        mermaid.render('mermaid-preview', this.mermaidCode, (svgCode: string) => {
-          this.svg = svgCode;
-          this.cdr.detectChanges();
-        });
+        setTimeout(() => {
+          const container = document.getElementById('mermaid-container');
+          if (!container) {
+            console.error('Mermaid container not found!');
+            this.errorMessage = 'Diagram container not found in the DOM.';
+            this.cdr.detectChanges();
+            return;
+          }
+
+          // Clean up previous content
+          container.innerHTML = '';
+
+          // Clean up code (replace \n with real newlines)
+          const cleanCode = this.mermaidCode.replace(/\\n/g, '\n');
+
+          // Render the diagram
+          mermaid.render('mermaid-preview', cleanCode, (svgCode: string) => {
+            this.svg = svgCode;
+            this.cdr.detectChanges();
+          }, container);
+        }, 0);
       } catch (e) {
         console.error('Mermaid rendering error:', e);
         this.errorMessage = 'There was an error rendering the diagram. The generated code might be invalid.';
+        this.cdr.detectChanges();
       }
     }
   }
@@ -476,5 +524,21 @@ export class DiagramsComponent implements OnInit, OnDestroy {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+  }
+
+  testMermaidRendering() {
+    console.log('Testing Mermaid rendering...');
+    this.http.get<any>('http://localhost:8000/api/diagrams/test')
+      .subscribe({
+        next: (data) => {
+          console.log('Test diagram received:', data);
+          this.mermaidCode = data.mermaid_code;
+          this.renderMermaid();
+        },
+        error: (error) => {
+          console.error('Error testing diagram:', error);
+          this.errorMessage = 'Error testing diagram rendering.';
+        },
+      });
   }
 }
