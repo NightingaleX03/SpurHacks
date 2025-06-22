@@ -28,11 +28,30 @@ export class AuthService {
   constructor(private router: Router, private http: HttpClient) {
     // Check if user is already logged in (from localStorage)
     const token = localStorage.getItem('auth_token');
-    if (token) {
-      this.isAuthenticatedSubject.next(true);
-      const user = this.getUserFromToken(token);
-      this.currentUserSubject.next(user);
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        // Validate that we have a proper user object
+        if (user && user.id && user.email && user.name) {
+          this.isAuthenticatedSubject.next(true);
+          this.currentUserSubject.next(user);
+          console.log('User restored from localStorage:', user.name);
+        } else {
+          // Invalid user data, clear everything
+          this.clearAuthData();
+        }
+      } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+        this.clearAuthData();
+      }
+    } else {
+      // No token or user data, ensure we're not authenticated
+      this.isAuthenticatedSubject.next(false);
+      this.currentUserSubject.next(null);
     }
+    
     // Load users from JSON
     this.loadUsers();
   }
@@ -52,6 +71,9 @@ export class AuthService {
       },
       error: (error) => {
         console.error('Error loading users:', error);
+        // Set default users if loading fails
+        this.users = [];
+        this.usersLoaded = true;
       }
     });
   }
@@ -100,10 +122,7 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    this.isAuthenticatedSubject.next(false);
-    this.currentUserSubject.next(null);
+    this.clearAuthData();
     this.router.navigate(['/']);
   }
 
@@ -118,5 +137,12 @@ export class AuthService {
   private getUserFromToken(token: string): User | null {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
+  }
+
+  private clearAuthData() {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    this.isAuthenticatedSubject.next(false);
+    this.currentUserSubject.next(null);
   }
 } 

@@ -24,8 +24,12 @@ export class AppComponent implements OnInit {
   constructor(private authService: AuthService) {}
 
   ngOnInit() {
+    console.log('AppComponent: Initializing...');
     this.authService.isAuthenticated$.subscribe(
-      (isAuth: boolean) => this.isAuthenticated = isAuth
+      (isAuth: boolean) => {
+        console.log('AppComponent: Authentication state changed:', isAuth);
+        this.isAuthenticated = isAuth;
+      }
     );
   }
 } 

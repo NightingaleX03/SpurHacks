@@ -23,7 +23,6 @@ import { AuthService } from '../services/auth.service';
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">Home</a>
           <a routerLink="/about" routerLinkActive="active" class="nav-link">About</a>
           <a *ngIf="!isAuthenticated && router.url !== '/login'" routerLink="/login" class="neon-button px-6 py-2">Login</a>
-          <a *ngIf="isAuthenticated" routerLink="/dashboard" class="neon-button px-6 py-2">Dashboard</a>
         </div>
 
         <!-- Mobile Menu Button -->
@@ -38,7 +37,6 @@ import { AuthService } from '../services/auth.service';
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link" (click)="closeMobileMenu()">Home</a>
           <a routerLink="/about" routerLinkActive="active" class="nav-link" (click)="closeMobileMenu()">About</a>
           <a *ngIf="!isAuthenticated && router.url !== '/login'" routerLink="/login" class="neon-button w-full text-center py-3" (click)="closeMobileMenu()">Login</a>
-          <a *ngIf="isAuthenticated" routerLink="/dashboard" class="neon-button w-full text-center py-3" (click)="closeMobileMenu()">Dashboard</a>
         </div>
       </div>
     </nav>
@@ -66,7 +64,9 @@ export class NavbarComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    console.log('NavbarComponent: Initializing...');
     this.authService.isAuthenticated$.subscribe((isAuth: boolean) => {
+      console.log('NavbarComponent: Authentication state changed:', isAuth);
       this.isAuthenticated = isAuth;
     });
   }
