@@ -1,6 +1,6 @@
-# 🧠 StackSketch – Intelligent Software Diagram Assistant
+# StackSketch – Intelligent Software Diagram Assistant
 
-StackSketch is an AI-powered tool that generates, edits, and maintains software architecture diagrams with real-time collaboration, deep code understanding, and static analysis. Designed for engineering teams, architects, and DevOps, ArchiMind bridges the gap between code and high-level system design.
+StackSketch is an AI-powered tool that generates, edits, and maintains software system diagrams with real-time collaboration, deep code understanding. Designed with solutions archiects in mind, StackSketch autmotes the diagram creation process to make time for strategic, high-level design and innovation
 
 ---
 
@@ -50,6 +50,49 @@ StackSketch is an AI-powered tool that generates, edits, and maintains software 
 
 ## 📦 Getting Started
 
-### Use this link to get started on our app today
+1. **Clone the repository:**
+
+   ```bash
+    git clone [<repository-url>](https://github.com/NightingaleX03/SpurHacks.git)
+   
+2. **Run Backend:**
+
+Open a new terminal and navigate to the server directory, create a virtual environment, and install the required dependencies:
+   ```bash
+    cd server
+    python3 -m venv venv
+    source venv/bin/activate    # On Windows, use: venv\Scripts\activate
+    pip install -r requirements.txt
+```
+   
+Then, run the command below. The backend will be running at: http://127.0.0.1:8000
+Swagger API docs available at: http://127.0.0.1:8000/docs
+   ```bash
+     uvicorn main:app --reload
+```
+
+3. **Run Frontend**
+Open a terminal and navigate to the server directory and install dependancies.
+   ```bash
+     cd client
+     npm i
+
+Once node_modules are added, run the command below, frontend will be running at: http://localhost:4200
+  ```bash
+    ng serve
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
 
 
